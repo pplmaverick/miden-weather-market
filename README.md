@@ -1,48 +1,48 @@
 # Miden Weather Prediction Market
 
-在 [Miden](https://polygon.technology/miden) 上以 ZK 原生方式實作的天氣預測市場。下注過程完全私密（只有 ZK 承諾上鏈），結算與領獎公開可驗證。
+A weather prediction market built natively on [Miden](https://polygon.technology/miden), leveraging zero-knowledge proofs for private bet placement. Bets are committed on-chain via ZK commitments — the user secret never leaves the client. Settlement and payout are fully public and verifiable.
 
-## 專案結構
+## Repository Structure
 
 ```
 miden-weather-market/
-├── counter-contract/   # 練習用 Counter Contract（確認編譯流程）
-└── weather-market/     # 主合約：Weather Prediction Market
+├── counter-contract/   # Minimal counter contract (compilation sanity check)
+└── weather-market/     # Main contract: Weather Prediction Market
 ```
 
-## 合約功能
+## Contract Interface
 
-| 函式 | 說明 |
+| Function | Description |
 |---|---|
-| `initialize(oracle_secret_hash)` | 部署後一次性初始化，設定 oracle 公開承諾 |
-| `create_market(question_hash, close_time, outcomes)` | 建立新預測市場，回傳 `market_id` |
-| `place_bet(market_id, outcome, amount, bet_commitment)` | 下注，`bet_commitment` 由客戶端計算，user_secret 不上鏈 |
-| `settle_market(market_id, winning_outcome, oracle_secret)` | Oracle 揭露秘密並公布獲勝結果（需 close_time 已過） |
-| `claim_winnings(market_id, outcome, amount, user_secret)` | 揭露下注資料，領取 Parimutuel 分潤 |
-| `get_market(market_id)` | 查詢市場狀態 |
-| `get_outcome_pool(market_id, outcome)` | 查詢指定選項的累計注額 |
-| `get_market_count()` | 查詢市場總數 |
+| `initialize(oracle_secret_hash)` | One-time setup — stores the oracle's Poseidon commitment on-chain |
+| `create_market(question_hash, close_time, outcomes)` | Create a new prediction market; returns `market_id` |
+| `place_bet(market_id, outcome, amount, bet_commitment)` | Place a bet using a client-side commitment; `user_secret` stays off-chain |
+| `settle_market(market_id, winning_outcome, oracle_secret)` | Oracle reveals secret and records the winning outcome (requires `close_time` passed) |
+| `claim_winnings(market_id, outcome, amount, user_secret)` | Reveal bet preimage and claim parimutuel payout |
+| `get_market(market_id)` | Returns `[status, winning_outcome, close_time, outcomes_count]` |
+| `get_outcome_pool(market_id, outcome)` | Returns total amount bet on a specific outcome |
+| `get_market_count()` | Returns the total number of markets created |
 
-## 技術架構
+## Architecture
 
-### ZK 私密下注
-用戶在客戶端計算 `bet_commitment = hash([market_id, outcome, amount, user_secret])`，只把 commitment 和公開的 outcome / amount 提交上鏈。`user_secret` 永遠不離開用戶本地，領獎時才揭露。
+### Private Bet Commitment
+The client computes `bet_commitment = hash([market_id, outcome, amount, user_secret])` locally and submits only the commitment together with the public `outcome` and `amount`. The `user_secret` is never transmitted or stored on-chain. At claim time, the user reveals the full preimage to prove ownership.
 
-### Oracle 驗證
-部署者在 `initialize()` 時提交 `oracle_secret_hash = hash(oracle_secret_word)`。
-`settle_market()` 時揭露原像 `oracle_secret_word`，合約驗證 hash 後才允許結算。
+### Oracle Authentication
+At deployment, the deployer calls `initialize(oracle_secret_hash)` where `oracle_secret_hash = hash(oracle_secret_word)`. When settling, `settle_market()` requires the caller to supply the preimage `oracle_secret_word`; the contract verifies the hash before accepting the result.
 
-### Parimutuel 水池制
-獲勝分潤 = `amount × total_pool / winning_pool`
+### Parimutuel Payout Model
+```
+payout = amount × total_pool / winning_pool
+```
+All outcome pools contribute to a shared prize pool. Winners share the pot proportionally to their stake. Odds are dynamic and reflect the live distribution of bets.
 
-所有選項的注額匯入同一水池，勝者按比例分潤，賠率根據即時注額動態變動。
+### Double-Claim Prevention
+Claimed bets are tracked in a dedicated `claimed: StorageMap<Word, Felt>`, written with a non-zero sentinel value. This avoids writing `Felt(0)` from source code, which would generate an unsupported `F32Const(0.0)` WASM instruction in the Miden backend.
 
-### Anti-Double-Claim
-每筆 `bet_commitment` 的領取狀態存在獨立的 `claimed` StorageMap，標記為非零 sentinel 值，防止重複領取，同時迴避 Miden WASM 的 `F32Const(0.0)` 限制。
+## Testnet Deployment
 
-## Testnet 部署資訊
-
-| 項目 | 值 |
+| Field | Value |
 |---|---|
 | **Contract ID** | `0xcfdec78bb6b0971016d7199e27e99a` |
 | **Address** | `mtst1ar8aa3utk6cfwyqk6uveuflfngdmujgx` |
@@ -50,10 +50,11 @@ miden-weather-market/
 | **Block** | 807844 |
 | **Network** | Miden Testnet |
 
-**Explorer：** https://midenscan.com/account/0xcfdec78bb6b0971016d7199e27e99a
+**Explorer:** https://midenscan.com/account/0xcfdec78bb6b0971016d7199e27e99a
 
-## 開發環境
+## Development
 
+**Toolchain:**
 ```toml
 # rust-toolchain.toml
 channel = "nightly-2025-12-10"
@@ -61,24 +62,26 @@ targets = ["wasm32-wasip2"]
 components = ["rustfmt", "rust-src", "llvm-tools"]
 ```
 
+**Install cargo-miden:**
 ```bash
-# 安裝 cargo-miden
 cargo +nightly-2025-12-10 install cargo-miden --locked --version 0.8.1
-
-# 編譯
-cargo miden build --release
-# 輸出：target/miden/release/weather_market.masp
 ```
 
-## Storage 佈局
+**Build:**
+```bash
+cargo miden build --release
+# Output: target/miden/release/weather_market.masp
+```
+
+## Storage Layout
 
 ```
 WeatherMarketContract
-├── initialized        : StorageValue<Felt>          # 初始化旗標（非零 = 已初始化）
-├── market_count       : StorageValue<Felt>          # 市場計數 / 下一個 market_id
-├── oracle_commitment  : StorageValue<Word>          # Oracle secret 的 Poseidon hash
-├── markets            : StorageMap<Felt, Word>      # market_id → [status, winning_outcome, close_time, outcomes_count]
-├── outcome_pools      : StorageMap<Felt, Felt>      # pool_key(market_id, outcome) → 累計注額
-├── bets               : StorageMap<Word, Felt>      # bet_commitment → amount
-└── claimed            : StorageMap<Word, Felt>      # bet_commitment → 非零表示已領取
+├── initialized        : StorageValue<Felt>      # Non-zero once initialize() is called
+├── market_count       : StorageValue<Felt>      # Counter; also the next market_id
+├── oracle_commitment  : StorageValue<Word>      # Poseidon hash of the oracle secret word
+├── markets            : StorageMap<Felt, Word>  # market_id → [status, winning_outcome, close_time, outcomes_count]
+├── outcome_pools      : StorageMap<Felt, Felt>  # pool_key(market_id, outcome) → cumulative bet amount
+├── bets               : StorageMap<Word, Felt>  # bet_commitment → amount (0 = not placed)
+└── claimed            : StorageMap<Word, Felt>  # bet_commitment → non-zero if already claimed
 ```
