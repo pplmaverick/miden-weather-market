@@ -1,0 +1,8 @@
+# Rust build output
+target/
+
+# Miden client data (contains private keys and local state — never commit)
+.miden/
+
+# macOS
+.DS_Store
