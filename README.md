@@ -4,8 +4,7 @@
 ![Rust](https://img.shields.io/badge/Rust-nightly--2025--12--10-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A weather prediction market built natively on Miden, leveraging zero-knowledge proofs for private bet placement. Bets are committed on-chain via ZK commitments — the user secret never leaves the client. Settlement and payout are fully public and verifiable.
-
+ZK-native prediction market infrastructure on Miden | Weather as first use case | private bet placement via ZK commitments — user secret never leaves client | fully verifiable on-chain settlement
 **Deployed on Miden Testnet**
 
 | Field | Value |
