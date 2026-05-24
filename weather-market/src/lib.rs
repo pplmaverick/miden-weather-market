@@ -8,6 +8,8 @@ use miden::{
     StorageMap, StorageValue,
     component,
     hash_words,
+    emit_falcon_sig_to_stack,
+    rpo_falcon512_verify,
 };
 
 // ── Market status ─────────────────────────────────────────────
@@ -33,9 +35,11 @@ struct WeatherMarketContract {
     #[storage()]
     initialized: StorageValue<Felt>,
 
-    // oracle_secret hash stored at initialise time
+    // Poseidon2 hash of the Oracle's Falcon512 public key.
+    // Stored at initialise time; used by settle_market to verify Oracle signatures.
+    // The full public key is provided off-chain via the advice provider.
     #[storage()]
-    oracle_commitment: StorageValue<Word>,
+    oracle_pubkey_hash: StorageValue<Word>,
 
     // market_id → [status, winning_outcome, close_time, outcomes_count]
     #[storage()]
@@ -71,8 +75,14 @@ fn make_bet_commitment(
     Word::from(hash_words(&[data]))
 }
 
-fn make_oracle_commitment(secret: Word) -> Word {
-    Word::from(hash_words(&[secret]))
+/// Compute the settle message that the Oracle must sign.
+///
+/// msg = Poseidon2_hash( [market_id, winning_outcome, 0, 0] )
+///
+/// Both fields are padded to a full Word so the digest is unambiguous.
+fn make_settle_msg(market_id: Felt, winning_outcome: Felt) -> Word {
+    let data = Word::new([market_id, winning_outcome, Felt::new(0), Felt::new(0)]);
+    Word::from(hash_words(&[data]))
 }
 
 // ── Contract methods ──────────────────────────────────────────
@@ -81,14 +91,17 @@ impl WeatherMarketContract {
 
     // ── Initialisation ────────────────────────────────────────
     //
-    // oracle_secret_hash = make_oracle_commitment(oracle_secret_word)
-    // Call once at deployment; panics if already set.
-    pub fn initialize(&mut self, oracle_secret_hash: Word) {
+    // oracle_pubkey_hash = Poseidon2_hash(oracle_falcon512_public_key)
+    //
+    // The caller must supply the hash of the Oracle's Falcon512 public key.
+    // The full public key is never stored on-chain; only its hash is committed.
+    // Call once at deployment; panics if already initialised.
+    pub fn initialize(&mut self, oracle_pubkey_hash: Word) {
         assert!(
             self.initialized.get().as_canonical_u64() == 0,
             "already initialized"
         );
-        self.oracle_commitment.set(oracle_secret_hash);
+        self.oracle_pubkey_hash.set(oracle_pubkey_hash);
         self.initialized.set(Felt::new(STATUS_OPEN));
     }
 
@@ -163,19 +176,40 @@ impl WeatherMarketContract {
 
     // ── Settle market ─────────────────────────────────────────
     //
-    // Only callable by the holder of oracle_secret.
+    // Only callable by the holder of the Oracle's Falcon512 secret key.
     // Can only be called after close_time has passed.
+    //
+    // Security model (Falcon512 / advice-provider pattern):
+    //   1. Oracle computes msg = Poseidon2_hash([market_id, winning_outcome, 0, 0])
+    //   2. Oracle signs msg with their Falcon512 secret key → σ
+    //   3. Oracle adds σ to the transaction's advice provider (off-chain hint)
+    //   4. This function calls emit_falcon_sig_to_stack(msg, pk_hash) to request σ from the host
+    //   5. rpo_falcon512_verify(pk_hash, msg) verifies the signature inside the ZK proof
+    //   6. If verification fails the entire transaction is rejected — no state change occurs
+    //
+    // The signature is never passed as a function parameter; it lives exclusively
+    // in the advice provider and is consumed inside the ZK proof, giving
+    // front-running protection (mempool only sees market_id + winning_outcome).
     pub fn settle_market(
         &mut self,
         market_id: Felt,
         winning_outcome: Felt,
-        oracle_secret: Word,
     ) {
-        assert!(
-            make_oracle_commitment(oracle_secret) == self.oracle_commitment.get(),
-            "invalid oracle secret"
-        );
+        // 1. Build the message the Oracle must have signed
+        let msg = make_settle_msg(market_id, winning_outcome);
 
+        // 2. Load the committed Oracle public key hash from storage
+        let pk_hash = self.oracle_pubkey_hash.get();
+
+        // 3. Request the Falcon512 signature from the advice provider.
+        //    The host (transaction executor) is responsible for providing σ.
+        emit_falcon_sig_to_stack(msg, pk_hash);
+
+        // 4. Verify the signature inside the ZK proof.
+        //    Panics (and rolls back the tx) if verification fails.
+        rpo_falcon512_verify(pk_hash, msg);
+
+        // 5. Normal market-status checks
         let mut market = self.markets.get(market_id);
         assert!(
             market[IDX_STATUS].as_canonical_u64() == STATUS_OPEN,
@@ -262,5 +296,10 @@ impl WeatherMarketContract {
     // Returns total number of markets created
     pub fn get_market_count(&self) -> Felt {
         self.market_count.get()
+    }
+
+    // Returns the stored Oracle Falcon512 public key hash
+    pub fn get_oracle_pubkey_hash(&self) -> Word {
+        self.oracle_pubkey_hash.get()
     }
 }

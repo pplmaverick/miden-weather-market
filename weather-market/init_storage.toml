@@ -1,8 +1,8 @@
 # Initial storage values for WeatherMarketContract
-# initialized = 0  →  not yet initialized (initialize() must be called)
-# market_count = 0 →  no markets yet
-# oracle_commitment = zero word (set by initialize())
+# initialized = 0       →  not yet initialized (initialize() must be called)
+# market_count = 0      →  no markets yet
+# oracle_pubkey_hash    →  zero word (set by initialize() with Falcon512 pubkey hash)
 
 "miden_weather_market::weather_market_contract::initialized" = "0"
 "miden_weather_market::weather_market_contract::market_count" = "0"
-"miden_weather_market::weather_market_contract::oracle_commitment" = ["0", "0", "0", "0"]
+"miden_weather_market::weather_market_contract::oracle_pubkey_hash" = ["0", "0", "0", "0"]
