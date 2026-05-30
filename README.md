@@ -21,17 +21,20 @@ ZK-native prediction market infrastructure on Miden | Weather as first use case 
 |---|---|---|
 | `0xcccdcba958bba718ba213703067bd0d891a864bb5cd8f5f7963ac1eed54b126f` | 984144 | Contract deployed (v2, Falcon512 auth) |
 | `0x1ed89d2c29cf30b3edc18146add311c9e85b4f1d25fe96f468baebb8cd604751` | 1126160 | `initialize(oracle_pubkey_hash)` |
-| `0x5aada4a519f441b5ad66e5386e4d5eebb7bd9802b55b1a2143feb2b506585229` | 1141137 | `create_market()` — market_id 0 |
+| `0x5aada4a519f441b5ad66e5386e4d5eebb7bd9802b55b1a2143feb2b506585229` | 1141137 | `create_market()` — **void** (wrong proc — called `cabi_realloc`) |
+| `0x3ca6c668fe404296874700d873544b5203a89382e220904359771f5320c5c373` | 1143415 | `create_market()` — market_id 0 ✅ |
+| `0xe59c1ecd98764cbdaa3dd661f5ac0d3a8721f267190671810a8277fe2b531971` | 1143746 | `place_bet()` — market_id 0, outcome 1 (Yes), amount 1 ✅ |
 
 ### Market 0
 
 | Field | Value |
 |---|---|
-| TX | `0x5aada4a519f441b5ad66e5386e4d5eebb7bd9802b55b1a2143feb2b506585229` |
-| Block | 1141137 |
+| create_market TX | `0x3ca6c668fe404296874700d873544b5203a89382e220904359771f5320c5c373` |
+| place_bet TX | `0xe59c1ecd98764cbdaa3dd661f5ac0d3a8721f267190671810a8277fe2b531971` |
+| Block (created) | 1143415 |
 | market_id | `0` |
 | Question | `"Will Taipei max temp exceed 30°C tomorrow?"` |
-| close_time | `1780189333` |
+| close_time | `1780196539` |
 | Outcomes | `2` — `0 = No`, `1 = Yes` |
 
 ## Why Miden-Native
@@ -167,7 +170,12 @@ Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-w
 **✅ M1.6 — First Market Created (completed)**
 - `create_market()` called on-chain — market_id `0`
 - Question: `"Will Taipei max temp exceed 30°C tomorrow?"`
-- TX `0x5aada4a5...` committed at block 1141137
+- TX `0x3ca6c668...` committed at block 1143415
+
+**✅ M1.7 — First Bet Placed (completed)**
+- `place_bet()` called on-chain — market_id `0`, outcome `1` (Yes), amount `1`
+- ZK commitment submitted; `user_secret` never leaves client
+- TX `0xe59c1ecd...` committed at block 1143746
 
 **⬜ M2 — Expanded Features**
 - Client-side commitment generator (TypeScript/WASM)
