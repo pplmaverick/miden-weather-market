@@ -15,6 +15,25 @@ ZK-native prediction market infrastructure on Miden | Weather as first use case 
 | Block | 984144 |
 | Explorer | [midenscan.com](https://midenscan.com/account/0x881ed92bbd9e0410374f75f269507a) |
 
+## On-chain Activity
+
+| TX | Block | Description |
+|---|---|---|
+| `0xcccdcba958bba718ba213703067bd0d891a864bb5cd8f5f7963ac1eed54b126f` | 984144 | Contract deployed (v2, Falcon512 auth) |
+| `0x1ed89d2c29cf30b3edc18146add311c9e85b4f1d25fe96f468baebb8cd604751` | 1126160 | `initialize(oracle_pubkey_hash)` |
+| `0x5aada4a519f441b5ad66e5386e4d5eebb7bd9802b55b1a2143feb2b506585229` | 1141137 | `create_market()` — market_id 0 |
+
+### Market 0
+
+| Field | Value |
+|---|---|
+| TX | `0x5aada4a519f441b5ad66e5386e4d5eebb7bd9802b55b1a2143feb2b506585229` |
+| Block | 1141137 |
+| market_id | `0` |
+| Question | `"Will Taipei max temp exceed 30°C tomorrow?"` |
+| close_time | `1780189333` |
+| Outcomes | `2` — `0 = No`, `1 = Yes` |
+
 ## Why Miden-Native
 
 This project is built around Miden's ZK-native execution model, not ported from an EVM chain. The privacy and oracle authentication primitives would require off-chain infrastructure or trusted relayers on any other platform.
@@ -126,6 +145,9 @@ cargo miden build --release
 **F32Const sentinel pattern**
 Writing `Felt(0)` directly from source code generates an unsupported `F32Const(0.0)` WASM instruction in the Miden backend. The `claimed` StorageMap uses a non-zero sentinel value instead, avoiding this compiler-level constraint entirely.
 
+**`exec` vs `call` for procedures returning a value**
+The v2 contract was compiled with an older Miden SDK where procedures with a `-> felt` return type push the return value *after* `truncate_stack`, leaving stack depth at 17. Using `call.0xPROC_HASH` from a transaction script triggers a VM-level "stack depth must be 16" violation at the procedure boundary. Using `exec.0xPROC_HASH` runs the procedure inline (no call frame), bypassing that per-boundary check. The return value sits at the top of the stack after `exec` and is removed with a trailing `drop` to restore depth to 16 before the script ends.
+
 **Restricted Rust subset**
 Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-wasip2`. Standard library features that produce unsupported WASM instructions must be avoided — this shapes data structure choices throughout the contract.
 
@@ -141,6 +163,11 @@ Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-w
 - Oracle signature verified inside ZK proof via `rpo_falcon512_verify`; never appears in calldata
 - Eliminates front-running risk on settlement
 - Redeployed to Miden Testnet (block 984144, v2)
+
+**✅ M1.6 — First Market Created (completed)**
+- `create_market()` called on-chain — market_id `0`
+- Question: `"Will Taipei max temp exceed 30°C tomorrow?"`
+- TX `0x5aada4a5...` committed at block 1141137
 
 **⬜ M2 — Expanded Features**
 - Client-side commitment generator (TypeScript/WASM)
