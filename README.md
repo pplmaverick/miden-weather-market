@@ -7,6 +7,16 @@
 ZK-native prediction market infrastructure on Miden | Weather as first use case | private bet placement via ZK commitments — user secret never leaves client | fully verifiable on-chain settlement
 **Deployed on Miden Testnet**
 
+### v5 (current — full end-to-end verified)
+
+| Field | Value |
+|---|---|
+| Contract ID | `0xf6fec93fd713d2107154ddda438e58` |
+| Deploy TX | `0x9f0128e129f665831658d96841a250d71a91e6afb41546075d1058cd59fe2d60` |
+| Block | 1172769 |
+
+### v2 (initial deployment)
+
 | Field | Value |
 |---|---|
 | Contract ID | `0x881ed92bbd9e0410374f75f269507a` |
@@ -16,6 +26,25 @@ ZK-native prediction market infrastructure on Miden | Weather as first use case 
 | Explorer | [midenscan.com](https://midenscan.com/account/0x881ed92bbd9e0410374f75f269507a) |
 
 ## On-chain Activity
+
+### v5 — Full End-to-End Flow (2026-05-31)
+
+Contract: `0xf6fec93fd713d2107154ddda438e58`
+
+| TX | Block | Description |
+|---|---|---|
+| `0x9f0128e129f665831658d96841a250d71a91e6afb41546075d1058cd59fe2d60` | 1172769 | Contract deployed (v5) |
+| `0x630eb38c80988a8bb4af80ef8ef9237732783d17a8d6594929e43e5220b6139e` | 1172920 | `initialize()` v5 |
+| `0x8b9384dbd77e8a9e99037531228d83a44a0f9aedb6adbd3710db1c0ff526a9f1` | 1172978 | `create_market()` — market_id 0 |
+| `0x8976303c9c5dde3ff97843fa6816ff0a32a3baff4fd466a33dc7f98d63314776` | 1173095 | `place_bet()` — outcome 1, amount 1 (Poseidon2 commitment) |
+| *(not captured)* | ~1173200 | `settle_market()` — winning_outcome 1 ✅ |
+| `0x7286d9b03ce7e0dceb55180ae293e3adf67106f053536060c1eb434474a79f7b` | 1173367 | `claim_winnings()` ✅ |
+
+> settle TX was committed on-chain (confirmed by `get_market(0)` returning `status=2` and by the subsequent `claim_winnings` succeeding); the hash was not captured locally due to a `MerkleStoreError` in `apply_transaction` after network submission.
+
+### v2 — Initial Deployment
+
+Contract: `0x881ed92bbd9e0410374f75f269507a`
 
 | TX | Block | Description |
 |---|---|---|
@@ -176,6 +205,11 @@ Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-w
 - `place_bet()` called on-chain — market_id `0`, outcome `1` (Yes), amount `1`
 - ZK commitment submitted; `user_secret` never leaves client
 - TX `0xe59c1ecd...` committed at block 1143746
+
+**✅ M1.8 — Full End-to-End Flow Completed (v5)**
+- `initialize → create_market → place_bet → settle_market → claim_winnings` all succeeded on-chain
+- Diagnosed and fixed Poseidon2/RPO256 hash mismatch in `place_bet` client tool — `make_bet_commitment` in the contract uses `miden::hash_words` (Poseidon2); client-side commitment generation now uses `miden_crypto::Poseidon2::hash_elements` to match
+- `claim_winnings` TX `0x7286d9b0...` committed at block 1173367 on v5 contract `0xf6fec93f...`
 
 **⬜ M2 — Expanded Features**
 - Client-side commitment generator (TypeScript/WASM)
