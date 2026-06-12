@@ -1,0 +1,11 @@
+[package]
+name = "commitment-helper"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "commitment-helper"
+path = "src/main.rs"
+
+[dependencies]
+miden-crypto = "0.23"
