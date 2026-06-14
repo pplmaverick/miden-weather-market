@@ -23,7 +23,7 @@ ZK-native prediction market infrastructure on Miden | Weather as first use case 
 | Address | `mtst1azypakfthk0qgyphfa6ly62s0ga2ycnq` |
 | Deploy TX | `0xcccdcba958bba718ba213703067bd0d891a864bb5cd8f5f7963ac1eed54b126f` |
 | Block | 984144 |
-| Explorer | [midenscan.com](https://midenscan.com/account/0x881ed92bbd9e0410374f75f269507a) |
+
 
 ## On-chain Activity
 
