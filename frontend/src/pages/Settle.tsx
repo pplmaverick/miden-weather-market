@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const ORACLE_BASE = 'http://46.62.246.244:3001'
+const ORACLE_BASE = '/api/oracle'
 
 const MARKETS = [
   { city: 'Taipei', flag: '🇹🇼', marketId: 4, lat: '25.0330', lon: '121.5654' },

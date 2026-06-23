@@ -6,7 +6,7 @@ const CITIES = [
   { name: 'Seoul', flag: '🇰🇷', marketId: 6 },
 ]
 
-const ORACLE_BASE = 'http://46.62.246.244:3001'
+const ORACLE_BASE = '/api/oracle'
 
 type WeatherData = {
   temperature: number
