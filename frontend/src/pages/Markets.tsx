@@ -14,14 +14,158 @@ type WeatherData = {
   sourceCount?: number
 }
 
+type City = typeof CITIES[number]
+
+type MarketCardProps = {
+  city: City
+  weather: WeatherData | null | undefined
+  oracleStatus: 'live' | 'offline' | 'loading'
+  selectedOutcome: string | undefined
+  secret: string
+  onSelectOutcome: (outcome: string) => void
+  onSecretChange: (secret: string) => void
+  onPlaceBet: () => void
+}
+
+function MarketCard({
+  city, weather, oracleStatus,
+  selectedOutcome, secret,
+  onSelectOutcome, onSecretChange, onPlaceBet,
+}: MarketCardProps) {
+  const getOutcome = (temp: number) => temp >= 28 ? 'HOT' : temp >= 20 ? 'MILD' : 'COLD'
+  const w = weather
+
+  return (
+    <div className="card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Card Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ fontSize: '20px', fontWeight: 700 }}>{city.flag} {city.name}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', letterSpacing: '0.08em' }}>
+            MARKET #{city.marketId}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+          <span className={`badge ${oracleStatus === 'live' ? 'badge-live' : oracleStatus === 'loading' ? 'badge-pending' : 'badge-offline'}`}>
+            <span className={oracleStatus === 'live' ? 'pulse' : ''} style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: oracleStatus === 'live' ? '#41eec2' : oracleStatus === 'loading' ? 'rgba(155,89,245,1)' : '#ef4444',
+              display: 'inline-block',
+            }} />
+            {oracleStatus === 'loading' ? 'CONNECTING' : oracleStatus === 'live' ? 'ORACLE LIVE' : 'OFFLINE'}
+          </span>
+          <span className="badge badge-open">OPEN</span>
+        </div>
+      </div>
+
+      {/* Temperature */}
+      <div>
+        <div style={{ fontSize: '48px', fontWeight: 700, color: 'rgba(155,89,245,1)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+          {w ? `${w.temperature.toFixed(1)}°C` : '--.-°C'}
+        </div>
+        {w?.sources && (
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px', lineHeight: 1.6 }}>
+            OW: {w.sources.openweather?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
+            WA: {w.sources.weatherapi?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
+            OM: {w.sources.openmeteo?.toFixed(1) ?? '--'}°&nbsp;
+            <span style={{ color: '#475569' }}>({w.sourceCount ?? 0}/3)</span>
+          </div>
+        )}
+        {w && (
+          <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+            Reading:{' '}
+            <span style={{ color: 'rgba(155,89,245,0.9)', fontWeight: 600 }}>
+              {getOutcome(w.temperature)} ({w.temperature >= 28 ? '≥28°C' : w.temperature >= 20 ? '20–28°C' : '<20°C'})
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Outcome Buttons */}
+      <div>
+        <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '8px', letterSpacing: '0.1em' }}>
+          SELECT YOUR OUTCOME
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {[
+            { key: 'HOT', label: '🥵 HOT', sub: '≥28°C' },
+            { key: 'MILD', label: '🌤 MILD', sub: '20–28°C' },
+          ].map(({ key, label, sub }) => (
+            <button key={key}
+              onClick={() => onSelectOutcome(key)}
+              style={{
+                flex: 1, padding: '12px 8px',
+                borderRadius: '10px',
+                border: selectedOutcome === key
+                  ? '2px solid rgba(155,89,245,1)'
+                  : '1px solid rgba(155,89,245,0.2)',
+                background: selectedOutcome === key
+                  ? 'rgba(155,89,245,0.18)'
+                  : 'rgba(155,89,245,0.05)',
+                color: selectedOutcome === key ? 'rgba(155,89,245,1)' : '#94a3b8',
+                fontFamily: 'JetBrains Mono, monospace',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '12px',
+                transition: 'all 0.2s',
+                textAlign: 'center',
+              }}>
+              <div>{label}</div>
+              <div style={{ fontSize: '10px', opacity: 0.7, marginTop: '2px' }}>{sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Secret Input */}
+      <div>
+        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '6px', letterSpacing: '0.08em' }}>
+          🔐 USER SECRET (STAYS IN BROWSER)
+        </label>
+        <input
+          type="password"
+          placeholder="Enter your secret key..."
+          value={secret}
+          onChange={e => onSecretChange(e.target.value)}
+          style={{
+            width: '100%', padding: '10px 14px',
+            background: 'rgba(155,89,245,0.05)',
+            border: '1px solid rgba(155,89,245,0.2)',
+            borderRadius: '8px',
+            color: '#e4e1e9',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '13px',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={e => e.target.style.borderColor = 'rgba(155,89,245,0.6)'}
+          onBlur={e => e.target.style.borderColor = 'rgba(155,89,245,0.2)'}
+        />
+        <div style={{ fontSize: '10px', color: '#475569', marginTop: '4px' }}>
+          Poseidon2 commitment · never leaves your browser
+        </div>
+      </div>
+
+      {/* Place Bet */}
+      <button
+        className="btn-primary"
+        style={{ width: '100%', fontSize: '13px', padding: '12px', borderRadius: '8px' }}
+        onClick={onPlaceBet}
+      >
+        Place Bet → Market #{city.marketId}
+      </button>
+    </div>
+  )
+}
+
 export default function Markets() {
-  const [activeCity, setActiveCity] = useState('Taipei')
   const [weather, setWeather] = useState<Record<string, WeatherData | null>>({})
   const [oracleStatus, setOracleStatus] = useState<'live' | 'offline' | 'loading'>('loading')
   const [selectedOutcome, setSelectedOutcome] = useState<Record<string, string>>({})
   const [secrets, setSecrets] = useState<Record<string, string>>({})
 
   useEffect(() => {
+    // Health check via Taipei weather fetch
     fetch(`${ORACLE_BASE}/oracle/weather/Taipei`)
       .then(r => r.json())
       .then(data => {
@@ -30,6 +174,7 @@ export default function Markets() {
       })
       .catch(() => setOracleStatus('offline'))
 
+    // Fetch all cities simultaneously
     CITIES.forEach(city => {
       fetch(`${ORACLE_BASE}/oracle/weather/${city.name}`)
         .then(r => r.json())
@@ -38,21 +183,16 @@ export default function Markets() {
     })
   }, [])
 
-  const city = CITIES.find(c => c.name === activeCity)!
-  const w = weather[activeCity]
-
-  const getOutcome = (temp: number) => temp >= 28 ? 'HOT' : temp >= 20 ? 'MILD' : 'COLD'
-
-  const handlePlaceBet = () => {
-    const outcome = selectedOutcome[activeCity]
-    const secret = secrets[activeCity]
+  const handlePlaceBet = (city: City) => {
+    const outcome = selectedOutcome[city.name]
+    const secret = secrets[city.name]
     if (!outcome || !secret) {
       alert('Please select an outcome and enter a secret key.')
       return
     }
     const bet = {
       marketId: city.marketId,
-      city: activeCity,
+      city: city.name,
       flag: city.flag,
       outcome,
       secret: secret.slice(0, 4) + '****',
@@ -61,11 +201,11 @@ export default function Markets() {
     }
     const existing = JSON.parse(localStorage.getItem('midenBets') || '[]')
     localStorage.setItem('midenBets', JSON.stringify([...existing, bet]))
-    alert(`Bet placed!\nMarket #${city.marketId} · ${activeCity} · ${outcome}\nSecret committed locally.`)
+    alert(`Bet placed!\nMarket #${city.marketId} · ${city.name} · ${outcome}\nSecret committed locally.`)
   }
 
   return (
-    <div style={{ padding: '40px 32px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+    <div style={{ padding: '40px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative' }}>
       {/* Ambient glow */}
       <div style={{
         position: 'fixed', top: '-10%', right: '-10%',
@@ -87,145 +227,27 @@ export default function Markets() {
         </p>
       </div>
 
-      {/* City Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
-        {CITIES.map(c => (
-          <button key={c.name} onClick={() => setActiveCity(c.name)} style={{
-            padding: '10px 24px',
-            borderRadius: '999px',
-            border: activeCity === c.name ? '1px solid rgba(155,89,245,0.6)' : '1px solid rgba(155,89,245,0.2)',
-            background: activeCity === c.name ? 'rgba(155,89,245,0.15)' : 'rgba(155,89,245,0.05)',
-            color: activeCity === c.name ? 'rgba(155,89,245,1)' : '#64748b',
-            fontFamily: 'JetBrains Mono, monospace',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: activeCity === c.name ? 600 : 400,
-            transition: 'all 0.2s',
-          }}>
-            {c.flag} {c.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Market Card */}
-      <div className="card" style={{ maxWidth: '500px', padding: '28px' }}>
-        {/* Card Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-          <div>
-            <div style={{ fontSize: '22px', fontWeight: 700 }}>{city.flag} {city.name}</div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', letterSpacing: '0.08em' }}>
-              MARKET #{city.marketId}
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-            <span className={`badge ${oracleStatus === 'live' ? 'badge-live' : oracleStatus === 'loading' ? 'badge-pending' : 'badge-offline'}`}>
-              <span className={oracleStatus === 'live' ? 'pulse' : ''} style={{
-                width: '6px', height: '6px', borderRadius: '50%',
-                background: oracleStatus === 'live' ? '#41eec2' : oracleStatus === 'loading' ? 'rgba(155,89,245,1)' : '#ef4444',
-                display: 'inline-block',
-              }} />
-              {oracleStatus === 'loading' ? 'CONNECTING' : oracleStatus === 'live' ? 'ORACLE LIVE' : 'OFFLINE'}
-            </span>
-            <span className="badge badge-open">OPEN</span>
-          </div>
-        </div>
-
-        {/* Temperature Display */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '52px', fontWeight: 700, color: 'rgba(155,89,245,1)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-            {w ? `${w.temperature.toFixed(1)}°C` : '--.-°C'}
-          </div>
-          {w?.sources && (
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '10px', lineHeight: 1.6 }}>
-              OW: {w.sources.openweather?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
-              WA: {w.sources.weatherapi?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
-              OM: {w.sources.openmeteo?.toFixed(1) ?? '--'}°&nbsp;
-              <span style={{ color: '#475569' }}>({w.sourceCount ?? 0}/3 sources)</span>
-            </div>
-          )}
-          {w && (
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
-              Current reading:{' '}
-              <span style={{ color: 'rgba(155,89,245,0.9)', fontWeight: 600 }}>
-                {getOutcome(w.temperature)} ({w.temperature >= 28 ? '≥28°C' : w.temperature >= 20 ? '20–28°C' : '<20°C'})
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Outcome Buttons */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', letterSpacing: '0.08em' }}>
-            SELECT YOUR OUTCOME
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {[
-              { key: 'HOT', label: '🥵 HOT', sub: '≥28°C' },
-              { key: 'MILD', label: '🌤 MILD', sub: '20–28°C' },
-            ].map(({ key, label, sub }) => (
-              <button key={key}
-                onClick={() => setSelectedOutcome(prev => ({ ...prev, [activeCity]: key }))}
-                style={{
-                  flex: 1, padding: '14px 12px',
-                  borderRadius: '10px',
-                  border: selectedOutcome[activeCity] === key
-                    ? '2px solid rgba(155,89,245,1)'
-                    : '1px solid rgba(155,89,245,0.2)',
-                  background: selectedOutcome[activeCity] === key
-                    ? 'rgba(155,89,245,0.18)'
-                    : 'rgba(155,89,245,0.05)',
-                  color: selectedOutcome[activeCity] === key ? 'rgba(155,89,245,1)' : '#94a3b8',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  transition: 'all 0.2s',
-                  textAlign: 'center',
-                }}>
-                <div>{label}</div>
-                <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '2px' }}>{sub}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Secret Input */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '8px', letterSpacing: '0.08em' }}>
-            🔐 USER SECRET (STAYS IN BROWSER)
-          </label>
-          <input
-            type="password"
-            placeholder="Enter your secret key..."
-            value={secrets[activeCity] || ''}
-            onChange={e => setSecrets(prev => ({ ...prev, [activeCity]: e.target.value }))}
-            style={{
-              width: '100%', padding: '12px 16px',
-              background: 'rgba(155,89,245,0.05)',
-              border: '1px solid rgba(155,89,245,0.2)',
-              borderRadius: '10px',
-              color: '#e4e1e9',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '13px',
-              outline: 'none',
-              transition: 'border-color 0.2s',
-            }}
-            onFocus={e => e.target.style.borderColor = 'rgba(155,89,245,0.6)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(155,89,245,0.2)'}
+      {/* 2-column grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '24px',
+        maxWidth: '1000px',
+        margin: '0 auto',
+      }}>
+        {CITIES.map(city => (
+          <MarketCard
+            key={city.name}
+            city={city}
+            weather={weather[city.name]}
+            oracleStatus={oracleStatus}
+            selectedOutcome={selectedOutcome[city.name]}
+            secret={secrets[city.name] || ''}
+            onSelectOutcome={outcome => setSelectedOutcome(prev => ({ ...prev, [city.name]: outcome }))}
+            onSecretChange={val => setSecrets(prev => ({ ...prev, [city.name]: val }))}
+            onPlaceBet={() => handlePlaceBet(city)}
           />
-          <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px' }}>
-            Used for Poseidon2 commitment · never leaves your browser
-          </div>
-        </div>
-
-        {/* Place Bet */}
-        <button
-          className="btn-primary"
-          style={{ width: '100%', fontSize: '14px', padding: '14px', borderRadius: '10px' }}
-          onClick={handlePlaceBet}
-        >
-          Place Bet → Market #{city.marketId}
-        </button>
+        ))}
       </div>
     </div>
   )
