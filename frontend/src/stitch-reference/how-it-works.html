@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>How It Works - Miden Weather Market</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #0A0A0F;
+            color: #e4e1e9;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(155, 89, 245, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(155, 89, 245, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(155, 89, 245, 0.12);
+            box-shadow: 0 0 20px rgba(155, 89, 245, 0.15);
+            border-color: rgba(155, 89, 245, 0.4);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(215, 186, 255, 0.5);
+        }
+
+        .step-connector {
+            position: relative;
+        }
+
+        .step-connector::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(155, 89, 245, 0.5), transparent);
+            transform: translateY(-50%);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(155, 89, 245, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "outline-variant": "#4b4454",
+                        "surface": "#131318",
+                        "surface-variant": "#35343a",
+                        "on-background": "#e4e1e9",
+                        "surface-bright": "#39383e",
+                        "on-primary-container": "#3b0077",
+                        "on-secondary-container": "#005441",
+                        "surface-container-highest": "#35343a",
+                        "inverse-on-surface": "#303036",
+                        "secondary": "#41eec2",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-secondary-fixed-variant": "#00513f",
+                        "primary-container": "#ad72ff",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#cdc2d6",
+                        "surface-container-high": "#2a292f",
+                        "on-primary-fixed-variant": "#6107ba",
+                        "inverse-primary": "#7a34d3",
+                        "outline": "#978da0",
+                        "on-tertiary-fixed": "#410004",
+                        "inverse-surface": "#e4e1e9",
+                        "on-surface": "#e4e1e9",
+                        "on-primary": "#440087",
+                        "surface-container-low": "#1b1b20",
+                        "tertiary-container": "#ff5352",
+                        "background": "#131318",
+                        "primary-fixed": "#eddcff",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00d1a7",
+                        "surface-container-lowest": "#0e0e13",
+                        "on-tertiary": "#68000b",
+                        "primary": "#d7baff",
+                        "on-secondary-fixed": "#002118",
+                        "secondary-fixed-dim": "#28dfb5",
+                        "tertiary-fixed-dim": "#ffb3ae",
+                        "on-secondary": "#00382b",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#55fcd0",
+                        "on-tertiary-fixed-variant": "#930014",
+                        "primary-fixed-dim": "#d7baff",
+                        "surface-tint": "#d7baff",
+                        "tertiary": "#ffb3ae",
+                        "on-primary-fixed": "#290055",
+                        "surface-container": "#1f1f25",
+                        "on-tertiary-container": "#5c0008",
+                        "surface-dim": "#131318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "container-margin": "24px",
+                        "section-gap": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["JetBrains Mono"],
+                        "headline-lg": ["JetBrains Mono"],
+                        "body-sm": ["JetBrains Mono"],
+                        "mono-data": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["JetBrains Mono"],
+                        "body-md": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Ambient Atmospheric Glows -->
+<div class="ambient-glow -top-24 -left-24"></div>
+<div class="ambient-glow bottom-0 right-0" style="background: radial-gradient(circle, rgba(65, 238, 194, 0.03) 0%, transparent 70%);"></div>
+<!-- Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-md">
+<div class="flex justify-between items-center px-container-margin py-4 max-w-full mx-auto">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+                MIDEN WEATHER MARKET
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">Markets</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">My Bets</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">Settle</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 transition-colors duration-200" href="#">How It Works</a>
+</div>
+<button class="bg-primary text-on-primary font-bold py-2 px-6 rounded-full hover:opacity-80 active:scale-95 transition-all">
+                Connect Miden Wallet
+            </button>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap px-container-margin max-w-7xl mx-auto">
+<!-- Hero Section -->
+<header class="mb-section-gap text-center max-w-3xl mx-auto">
+<div class="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-label-caps mb-6">
+<span class="material-symbols-outlined text-[14px]">shield_lock</span>
+                ZERO KNOWLEDGE PROOFS ENABLED
+            </div>
+<h1 class="font-headline-xl text-headline-xl mb-6 glow-text">
+                ZK-Native Prediction Market
+            </h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                Miden Weather Market leverages Miden's actor-based ZK execution to allow for private commitments and trustless verification of weather outcomes.
+            </p>
+</header>
+<!-- Process Flow Section -->
+<section class="mb-section-gap">
+<h2 class="font-headline-lg text-headline-lg mb-12 text-center">Lifecycle of a Bet</h2>
+<div class="relative overflow-x-auto pb-8">
+<div class="flex justify-between items-start min-w-[1000px] gap-4 px-4">
+<!-- Step 1 -->
+<div class="flex-1 flex flex-col items-center text-center group">
+<div class="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">key</span>
+</div>
+<div class="font-label-caps text-primary mb-2">Step 1</div>
+<div class="font-mono-data text-mono-data mb-2 font-bold">Enter Secret</div>
+<p class="text-xs text-on-surface-variant px-4">Generate a local secret value to mask your market position.</p>
+<div class="mt-6 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-primary/30 relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(215,186,255,0.8)]"></div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex-1 flex flex-col items-center text-center group">
+<div class="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary text-3xl">functions</span>
+</div>
+<div class="font-label-caps text-secondary mb-2">Step 2</div>
+<div class="font-mono-data text-mono-data mb-2 font-bold">Poseidon2 Hash</div>
+<p class="text-xs text-on-surface-variant px-4">Compute a ZK-friendly hash of your bet and secret locally.</p>
+<div class="mt-6 w-full h-[2px] bg-primary/30 relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex-1 flex flex-col items-center text-center group">
+<div class="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">account_balance_wallet</span>
+</div>
+<div class="font-label-caps text-primary mb-2">Step 3</div>
+<div class="font-mono-data text-mono-data mb-2 font-bold">Commitment on Miden</div>
+<p class="text-xs text-on-surface-variant px-4">Send the hash to the Miden rollup. No one knows your bet yet.</p>
+<div class="mt-6 w-full h-[2px] bg-primary/30 relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex-1 flex flex-col items-center text-center group">
+<div class="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary text-3xl">cloud_queue</span>
+</div>
+<div class="font-label-caps text-secondary mb-2">Step 4</div>
+<div class="font-mono-data text-mono-data mb-2 font-bold">Oracle Settles</div>
+<p class="text-xs text-on-surface-variant px-4">External data is verified via 3 independent sources.</p>
+<div class="mt-6 w-full h-[2px] bg-primary/30 relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="flex-1 flex flex-col items-center text-center group">
+<div class="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">verified</span>
+</div>
+<div class="font-label-caps text-primary mb-2">Step 5</div>
+<div class="font-mono-data text-mono-data mb-2 font-bold">Prove &amp; Claim</div>
+<p class="text-xs text-on-surface-variant px-4">Generate a STARK proof showing your commitment wins.</p>
+<div class="mt-6 w-full h-[2px] bg-gradient-to-l from-transparent via-primary/30 to-primary/30 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Private Bets -->
+<div class="glass-card p-8 rounded-2xl flex flex-col h-full group">
+<div class="mb-6">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-4">Private Bets</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-grow">
+                    Your financial strategy remains your own. By hashing commitments locally, your market position is never revealed until the moment of claim.
+                </p>
+<div class="mt-6 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#41eec2]"></span>
+<span class="font-label-caps text-secondary">Local Hashing Active</span>
+</div>
+</div>
+<!-- ZK Native -->
+<div class="glass-card p-8 rounded-2xl flex flex-col h-full group relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl">bolt</span>
+</div>
+<div class="mb-6">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-4">ZK Native</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-grow">
+                    Built on Miden's STARK-based ZK execution engine. High throughput, lower fees, and cryptographically guaranteed settlement.
+                </p>
+<div class="mt-6 flex items-center gap-2">
+<div class="px-2 py-1 bg-primary/10 rounded text-[10px] text-primary border border-primary/20">STARK-PROOFED</div>
+<div class="px-2 py-1 bg-secondary/10 rounded text-[10px] text-secondary border border-secondary/20">MIDEN-CORE</div>
+</div>
+</div>
+<!-- Real Oracle -->
+<div class="glass-card p-8 rounded-2xl flex flex-col h-full group">
+<div class="mb-6">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">partly_cloudy_day</span>
+</div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-4">Real Oracle</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-grow">
+                    Settlement data is pulled from 3 independent meteorological sources, using a median calculation to ensure accuracy and prevent manipulation.
+                </p>
+<div class="mt-6 space-y-2">
+<div class="flex justify-between text-[10px] font-mono-data opacity-60">
+<span>SOURCE_A</span>
+<span>0x4...9E1</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-data opacity-60">
+<span>SOURCE_B</span>
+<span>0x2...FA3</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Visual Technical Detail -->
+<section class="mt-section-gap glass-card p-container-margin rounded-3xl relative overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-6">Cryptographic Integrity</h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary">terminal</span>
+<div>
+<div class="font-mono-data text-on-surface">Poseidon2 Permutation</div>
+<div class="text-sm text-on-surface-variant">Optimized for Miden's field arithmetic, ensuring 128-bit security for all commitments.</div>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary">layers</span>
+<div>
+<div class="font-mono-data text-on-surface">State Model</div>
+<div class="text-sm text-on-surface-variant">Using the Account State Model to handle individual bet commitments in parallel.</div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-primary text-primary font-bold py-3 px-8 rounded-full hover:bg-primary/10 transition-all flex items-center gap-2 group">
+                        Technical Whitepaper
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<div class="relative h-64 lg:h-96 rounded-2xl overflow-hidden border border-outline-variant/30 bg-surface-container-lowest">
+<!-- Placeholder for an abstract technical animation/image -->
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="A hyper-modern technical 3D visualization of a cryptographic proof structure, featuring glowing purple geometric nodes connected by electric violet data lines. The background is a deep obsidian void with subtle digital noise and monospaced code floating in the periphery. Lighting is dramatic and high-contrast, emphasizing the glass-like transparency of the nodes and the vibrant energy of the connections." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfZtPpRm0EMsib7X5orQWC_vwzDpRaV9NPgTSQZmdxGwJTu0cLIy4skAZjf6umM8-3Ji4FX20DQ35DNiPyrOoRdgtBkIFUIEk9uDmKVs3MDvhnlXzFZNAZz81nInG-h1jLwzqW3O3Sl8NFMdq4M0CzeAegUqEwuAa0NaG8pnmD0VF5RvAG5a6QdJwkrATS-fym9VFQRq1l3C5C9RehUEcFYrtdu5IPuvikMKRGhgTSKxTWGyEzvYqLTaSq1Q9MzgTWzaUDz2ke4Mcs')"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="p-4 bg-surface/90 border border-primary/40 rounded-xl backdrop-blur-md">
+<code class="text-xs text-primary leading-relaxed">
+                                struct BetCommitment {<br/>
+                                  hash: Word,<br/>
+                                  market_id: u64,<br/>
+                                  stake: u64,<br/>
+                                  nullifier: Word<br/>
+                                }
+                            </code>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="mt-section-gap border-t border-outline-variant/20 py-12 px-container-margin bg-surface-container-lowest">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface opacity-50">
+                MIDEN WEATHER
+            </div>
+<div class="flex gap-8 text-on-surface-variant text-body-sm">
+<a class="hover:text-primary transition-colors" href="#">Docs</a>
+<a class="hover:text-primary transition-colors" href="#">GitHub</a>
+<a class="hover:text-primary transition-colors" href="#">Discord</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+</div>
+<div class="text-on-surface-variant text-body-sm font-mono-data">
+                VERIFIED BY MIDEN ROLLUP
+            </div>
+</div>
+</footer>
+<script>
+        // Micro-interaction: Subtle hover glow follows mouse on glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

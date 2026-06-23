@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settle Market | MIDEN WEATHER MARKET</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #0A0A0F;
+            color: #e4e1e9;
+        }
+        .glass-panel {
+            background: rgba(155, 89, 245, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(155, 89, 245, 0.2);
+        }
+        .interactive-glow:hover {
+            box-shadow: 0 0 20px rgba(155, 89, 245, 0.15);
+            transition: all 0.3s ease;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(65, 238, 194, 0.2), transparent);
+            position: absolute;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "outline-variant": "#4b4454",
+                        "surface": "#131318",
+                        "surface-variant": "#35343a",
+                        "on-background": "#e4e1e9",
+                        "surface-bright": "#39383e",
+                        "on-primary-container": "#3b0077",
+                        "on-secondary-container": "#005441",
+                        "surface-container-highest": "#35343a",
+                        "inverse-on-surface": "#303036",
+                        "secondary": "#41eec2",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-secondary-fixed-variant": "#00513f",
+                        "primary-container": "#ad72ff",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#cdc2d6",
+                        "surface-container-high": "#2a292f",
+                        "on-primary-fixed-variant": "#6107ba",
+                        "inverse-primary": "#7a34d3",
+                        "outline": "#978da0",
+                        "on-tertiary-fixed": "#410004",
+                        "inverse-surface": "#e4e1e9",
+                        "on-surface": "#e4e1e9",
+                        "on-primary": "#440087",
+                        "surface-container-low": "#1b1b20",
+                        "tertiary-container": "#ff5352",
+                        "background": "#131318",
+                        "primary-fixed": "#eddcff",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00d1a7",
+                        "surface-container-lowest": "#0e0e13",
+                        "on-tertiary": "#68000b",
+                        "primary": "#d7baff",
+                        "on-secondary-fixed": "#002118",
+                        "secondary-fixed-dim": "#28dfb5",
+                        "tertiary-fixed-dim": "#ffb3ae",
+                        "on-secondary": "#00382b",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#55fcd0",
+                        "on-tertiary-fixed-variant": "#930014",
+                        "primary-fixed-dim": "#d7baff",
+                        "surface-tint": "#d7baff",
+                        "tertiary": "#ffb3ae",
+                        "on-primary-fixed": "#290055",
+                        "surface-container": "#1f1f25",
+                        "on-tertiary-container": "#5c0008",
+                        "surface-dim": "#131318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "container-margin": "24px",
+                        "section-gap": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["JetBrains Mono"],
+                        "headline-lg": ["JetBrains Mono"],
+                        "body-sm": ["JetBrains Mono"],
+                        "mono-data": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["JetBrains Mono"],
+                        "body-md": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-md">
+<nav class="flex justify-between items-center px-container-margin py-4 max-w-full mx-auto">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+                MIDEN WEATHER MARKET
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">Markets</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">My Bets</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md" href="#">Settle</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">How It Works</a>
+</div>
+<button class="bg-primary text-on-primary font-bold py-2 px-6 rounded-full hover:opacity-80 active:scale-95 transition-all font-body-md text-body-md">
+                Connect Miden Wallet
+            </button>
+</nav>
+</header>
+<main class="flex-grow pt-32 pb-16 px-container-margin max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<div class="mb-12">
+<div class="flex items-center gap-4 mb-2">
+<div class="h-1 w-12 bg-primary"></div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface uppercase tracking-tighter">Oracle Settlement Panel</h1>
+</div>
+<p class="text-on-surface-variant font-mono-data text-mono-data ml-16 max-w-2xl">
+                Cryptographically verify weather outcomes and trigger smart contract settlements across global atmospheric markets.
+            </p>
+</div>
+<!-- Warning Banner -->
+<div class="mb-section-gap glass-panel p-4 flex items-center gap-4 relative overflow-hidden">
+<div class="scanline"></div>
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-tertiary uppercase tracking-widest">System Warning</span>
+<span class="font-body-md text-body-md font-bold">Admin function — settlement runs automatically via VPS oracle</span>
+</div>
+<div class="ml-auto flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-mono-data text-mono-data text-secondary">ORACLE_ACTIVE_0x44</span>
+</div>
+</div>
+<!-- Oracle Data Table -->
+<div class="glass-panel rounded-xl overflow-hidden mb-section-gap">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-mono-data text-mono-data border-collapse">
+<thead>
+<tr class="bg-surface-variant/30 border-b border-outline-variant/20">
+<th class="px-6 py-4 font-label-caps text-label-caps text-outline uppercase">City/Node</th>
+<th class="px-6 py-4 font-label-caps text-label-caps text-outline uppercase">Current Temp</th>
+<th class="px-6 py-4 font-label-caps text-label-caps text-outline uppercase">Winning Outcome</th>
+<th class="px-6 py-4 font-label-caps text-label-caps text-outline uppercase">Market Status</th>
+<th class="px-6 py-4 font-label-caps text-label-caps text-outline uppercase text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-bold">London, UK</span>
+<span class="text-[10px] text-outline">LAT: 51.5072 | LON: 0.1276</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<span class="text-headline-lg-mobile text-headline-lg-mobile font-bold text-secondary">14.2°C</span>
+<span class="material-symbols-outlined text-secondary/50 text-sm">trending_up</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-surface-container-high px-3 py-1 rounded-full border border-primary/20 text-primary">BELOW 15°C</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-secondary">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>READY</span>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="bg-primary text-on-primary font-bold py-2 px-6 rounded-full interactive-glow active:scale-95 transition-all">
+                                    Settle
+                                </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-bold">New York, US</span>
+<span class="text-[10px] text-outline">LAT: 40.7128 | LON: 74.0060</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="text-headline-lg-mobile text-headline-lg-mobile font-bold">28.5°C</span>
+<span class="material-symbols-outlined text-tertiary/50 text-sm">trending_down</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-surface-container-high px-3 py-1 rounded-full border border-outline-variant/20 text-outline">ABOVE 25°C</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">verified</span>
+<span>SETTLED</span>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="bg-outline-variant/20 text-outline-variant font-bold py-2 px-6 rounded-full cursor-not-allowed" disabled="">
+                                    Settle
+                                </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-bold">Tokyo, JP</span>
+<span class="text-[10px] text-outline">LAT: 35.6762 | LON: 139.6503</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<span class="text-headline-lg-mobile text-headline-lg-mobile font-bold text-secondary">21.8°C</span>
+<span class="material-symbols-outlined text-secondary/50 text-sm">drag_handle</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-surface-container-high px-3 py-1 rounded-full border border-primary/20 text-primary">BETWEEN 20-22°C</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-secondary">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>READY</span>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="bg-primary text-on-primary font-bold py-2 px-6 rounded-full interactive-glow active:scale-95 transition-all">
+                                    Settle
+                                </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-bold">Dubai, UAE</span>
+<span class="text-[10px] text-outline">LAT: 25.2048 | LON: 55.2708</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="text-headline-lg-mobile text-headline-lg-mobile font-bold">42.1°C</span>
+<span class="material-symbols-outlined text-secondary/50 text-sm">trending_up</span>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-surface-container-high px-3 py-1 rounded-full border border-outline-variant/20 text-outline">ABOVE 40°C</span>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">verified</span>
+<span>SETTLED</span>
+</div>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="bg-outline-variant/20 text-outline-variant font-bold py-2 px-6 rounded-full cursor-not-allowed" disabled="">
+                                    Settle
+                                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- System Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-outline uppercase">Pending Proofs</span>
+<span class="font-headline-lg text-headline-lg text-primary">12 Active</span>
+<div class="w-full bg-surface-container-highest h-1 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-outline uppercase">Consensus Delay</span>
+<span class="font-headline-lg text-headline-lg text-secondary">184ms</span>
+<span class="font-mono-data text-mono-data text-[10px] text-outline">SYNCED WITH BLOCK 18,234,002</span>
+</div>
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-outline uppercase">Success Rate</span>
+<span class="font-headline-lg text-headline-lg text-on-surface">99.98%</span>
+<span class="font-mono-data text-mono-data text-[10px] text-secondary">VERIFIED BY ZK-STARK</span>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/10 py-8 px-container-margin">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<p class="font-mono-data text-mono-data text-outline">
+                    Oracle: <span class="text-on-surface">46.62.246.244:3001</span> · Sources: <span class="text-on-surface">OpenWeather + WeatherAPI + Open-Meteo</span>
+</p>
+</div>
+<div class="flex gap-6 font-label-caps text-label-caps text-outline uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">API Specs</a>
+<a class="hover:text-primary transition-colors" href="#">ZK-Verifier</a>
+</div>
+</div>
+</footer>
+<!-- Interactive Script for micro-interactions -->
+<script>
+        document.querySelectorAll('button:not([disabled])').forEach(button => {
+            button.addEventListener('click', function() {
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span>';
+                this.classList.add('opacity-50');
+                
+                setTimeout(() => {
+                    this.innerHTML = 'Settled';
+                    this.classList.remove('bg-primary');
+                    this.classList.add('bg-outline-variant/20', 'text-outline-variant', 'cursor-not-allowed');
+                    this.disabled = true;
+                    this.parentElement.previousElementSibling.innerHTML = `
+                        <div class="flex items-center gap-2 text-outline">
+                            <span class="material-symbols-outlined text-sm">verified</span>
+                            <span>SETTLED</span>
+                        </div>
+                    `;
+                }, 2000);
+            });
+        });
+    </script>
+</body></html>

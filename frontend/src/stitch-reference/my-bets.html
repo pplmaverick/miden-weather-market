@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Bets | MIDEN WEATHER MARKET</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0A0A0F;
+            font-family: 'JetBrains Mono', monospace;
+            color: #e4e1e9;
+        }
+        .glass-card {
+            background: rgba(155, 89, 245, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(155, 89, 245, 0.2);
+        }
+        .glass-row:hover {
+            background: rgba(155, 89, 245, 0.12);
+            transition: all 0.2s ease;
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 20px rgba(155, 89, 245, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "outline-variant": "#4b4454",
+                        "surface": "#131318",
+                        "surface-variant": "#35343a",
+                        "on-background": "#e4e1e9",
+                        "surface-bright": "#39383e",
+                        "on-primary-container": "#3b0077",
+                        "on-secondary-container": "#005441",
+                        "surface-container-highest": "#35343a",
+                        "inverse-on-surface": "#303036",
+                        "secondary": "#41eec2",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-secondary-fixed-variant": "#00513f",
+                        "primary-container": "#ad72ff",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#cdc2d6",
+                        "surface-container-high": "#2a292f",
+                        "on-primary-fixed-variant": "#6107ba",
+                        "inverse-primary": "#7a34d3",
+                        "outline": "#978da0",
+                        "on-tertiary-fixed": "#410004",
+                        "inverse-surface": "#e4e1e9",
+                        "on-surface": "#e4e1e9",
+                        "on-primary": "#440087",
+                        "surface-container-low": "#1b1b20",
+                        "tertiary-container": "#ff5352",
+                        "background": "#131318",
+                        "primary-fixed": "#eddcff",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00d1a7",
+                        "surface-container-lowest": "#0e0e13",
+                        "on-tertiary": "#68000b",
+                        "primary": "#d7baff",
+                        "on-secondary-fixed": "#002118",
+                        "secondary-fixed-dim": "#28dfb5",
+                        "tertiary-fixed-dim": "#ffb3ae",
+                        "on-secondary": "#00382b",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#55fcd0",
+                        "on-tertiary-fixed-variant": "#930014",
+                        "primary-fixed-dim": "#d7baff",
+                        "surface-tint": "#d7baff",
+                        "tertiary": "#ffb3ae",
+                        "on-primary-fixed": "#290055",
+                        "surface-container": "#1f1f25",
+                        "on-tertiary-container": "#5c0008",
+                        "surface-dim": "#131318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "container-margin": "24px",
+                        "section-gap": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["JetBrains Mono"],
+                        "headline-lg": ["JetBrains Mono"],
+                        "body-sm": ["JetBrains Mono"],
+                        "mono-data": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["JetBrains Mono"],
+                        "body-md": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-md">
+<div class="flex justify-between items-center px-container-margin py-4 max-w-full mx-auto">
+<div class="font-headline-lg text-headline-lg font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="cloud">cloud</span>
+                MIDEN WEATHER MARKET
+            </div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">Markets</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 transition-colors duration-200" href="#">My Bets</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">Settle</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" href="#">How It Works</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="px-4 py-2 bg-surface-container rounded-full border border-outline/20 flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+<span class="font-mono-data text-body-sm text-on-surface-variant">0x7a...d3e1</span>
+</div>
+<button class="bg-primary text-on-primary font-bold px-6 py-2 rounded-full hover:opacity-90 active:scale-95 transition-all text-body-sm">
+                    Connect Miden Wallet
+                </button>
+</div>
+</div>
+</header>
+<main class="pt-32 px-container-margin max-w-7xl mx-auto pb-24">
+<!-- Header Section -->
+<div class="mb-section-gap flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-2">Your ZK Bets</h1>
+<p class="text-on-surface-variant font-body-md">Manage your cryptographic weather positions. All data is verified via zero-knowledge proofs on Miden.</p>
+</div>
+<div class="flex gap-4">
+<div class="glass-card px-6 py-4 rounded-lg flex flex-col">
+<span class="text-label-caps text-outline-variant">TOTAL STAKED</span>
+<span class="text-headline-lg text-primary font-bold">14,250 USDT</span>
+</div>
+<div class="glass-card px-6 py-4 rounded-lg flex flex-col">
+<span class="text-label-caps text-outline-variant">UNCLAIMED</span>
+<span class="text-headline-lg text-secondary font-bold">842 USDT</span>
+</div>
+</div>
+</div>
+<!-- Technical Table / Content Area -->
+<div class="glass-card rounded-lg overflow-hidden border border-outline-variant/20">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-white/10 bg-white/5">
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold">Market</th>
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold">City</th>
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold">Outcome</th>
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold">Secret (ZK)</th>
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold">Status</th>
+<th class="px-6 py-4 text-label-caps text-outline-variant font-bold text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1: Claimable -->
+<tr class="glass-row">
+<td class="px-6 py-6 font-mono-data">
+<div class="flex flex-col">
+<span class="text-on-surface">TEMP_GT_35C</span>
+<span class="text-xs text-outline-variant">Exp: 24 Oct 2023</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface font-mono-data">Dubai, UAE</td>
+<td class="px-6 py-6 text-secondary font-bold font-mono-data">YES</td>
+<td class="px-6 py-6 text-outline-variant font-mono-data">****-ZK82</td>
+<td class="px-6 py-6">
+<span class="bg-secondary-container/20 text-secondary border border-secondary/30 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-2">
+<span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                                    CLAIMABLE
+                                </span>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="bg-secondary text-on-secondary font-bold px-4 py-2 rounded-full hover:brightness-110 transition-all text-xs shadow-[0_0_15px_rgba(65,238,194,0.3)]">
+                                    Claim 420 USDT
+                                </button>
+</td>
+</tr>
+<!-- Row 2: Pending -->
+<tr class="glass-row">
+<td class="px-6 py-6 font-mono-data">
+<div class="flex flex-col">
+<span class="text-on-surface">HUMID_LT_20%</span>
+<span class="text-xs text-outline-variant">Exp: 28 Oct 2023</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface font-mono-data">Phoenix, USA</td>
+<td class="px-6 py-6 text-primary font-bold font-mono-data">NO</td>
+<td class="px-6 py-6 text-outline-variant font-mono-data">****-ZK99</td>
+<td class="px-6 py-6">
+<span class="bg-primary-container/20 text-primary border border-primary/30 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-2">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                                    PENDING
+                                </span>
+</td>
+<td class="px-6 py-6 text-right">
+<button class="border border-outline-variant text-outline-variant font-bold px-4 py-2 rounded-full text-xs cursor-not-allowed">
+                                    Wait for Proof
+                                </button>
+</td>
+</tr>
+<!-- Row 3: Won (Already Claimed) -->
+<tr class="glass-row">
+<td class="px-6 py-6 font-mono-data">
+<div class="flex flex-col">
+<span class="text-on-surface">RAIN_GT_5MM</span>
+<span class="text-xs text-outline-variant">Exp: 15 Oct 2023</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface font-mono-data">London, UK</td>
+<td class="px-6 py-6 text-secondary font-bold font-mono-data">YES</td>
+<td class="px-6 py-6 text-outline-variant font-mono-data">****-ZK12</td>
+<td class="px-6 py-6">
+<span class="bg-secondary-container/10 text-secondary/60 border border-secondary/10 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-2">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    CLAIMED
+                                </span>
+</td>
+<td class="px-6 py-6 text-right font-mono-data text-xs text-outline-variant">
+                                Tx: 0x9f...2b1a
+                            </td>
+</tr>
+<!-- Row 4: Lost -->
+<tr class="glass-row opacity-60">
+<td class="px-6 py-6 font-mono-data">
+<div class="flex flex-col">
+<span class="text-on-surface">SNOW_GT_10CM</span>
+<span class="text-xs text-outline-variant">Exp: 10 Oct 2023</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface font-mono-data">Sapporo, JPN</td>
+<td class="px-6 py-6 text-error font-bold font-mono-data">YES</td>
+<td class="px-6 py-6 text-outline-variant font-mono-data">****-ZK04</td>
+<td class="px-6 py-6">
+<span class="bg-error-container/20 text-error border border-error/30 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-2">
+                                    LOST
+                                </span>
+</td>
+<td class="px-6 py-6 text-right">
+<span class="text-outline-variant text-xs font-mono-data">Resolved</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Empty State Example (Hidden by default, shown if no rows) -->
+<div class="hidden mt-12 py-24 flex flex-col items-center justify-center glass-card rounded-lg border-dashed" id="empty-state">
+<div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<h3 class="text-headline-lg font-bold text-on-surface mb-2">No bets yet</h3>
+<p class="text-on-surface-variant font-body-md text-center max-w-sm">Your secrets, your bets. Start trading weather derivatives with zero-knowledge privacy.</p>
+<button class="mt-8 bg-primary text-on-primary font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform">
+                Explore Markets
+            </button>
+</div>
+<!-- Footer Visual Info -->
+<div class="mt-section-gap grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-card p-6 rounded-lg">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-secondary" data-icon="shield">shield</span>
+<h4 class="font-bold text-on-surface">Privacy Protocol</h4>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">All bets are masked using Miden's Note system. Your outcome and stake are encrypted; only the final ZK-proof reveals claimability.</p>
+</div>
+<div class="glass-card p-6 rounded-lg">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+<h4 class="font-bold text-on-surface">Instant Settlement</h4>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">Once weather stations push data to the oracle, the platform generates a proof for each city. Winnings are available immediately.</p>
+</div>
+<div class="glass-card p-6 rounded-lg">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-tertiary" data-icon="monitoring">monitoring</span>
+<h4 class="font-bold text-on-surface">Data Integrity</h4>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">Aggregated from multiple hyper-local weather sensors. Discrepancies trigger a multi-sig manual verification phase.</p>
+</div>
+</div>
+</main>
+<!-- Background Decorative Element -->
+<div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full" style="background: radial-gradient(circle, rgba(155, 89, 245, 0.08) 0%, transparent 70%);"></div>
+<div class="absolute bottom-[-5%] left-[-5%] w-[400px] h-[400px] rounded-full" style="background: radial-gradient(circle, rgba(65, 238, 194, 0.05) 0%, transparent 70%);"></div>
+</div>
+<script>
+        // Simple Micro-interaction for claiming
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.innerText.includes('Claim')) {
+                btn.addEventListener('click', function() {
+                    const originalText = this.innerText;
+                    this.innerText = 'Processing...';
+                    this.classList.add('opacity-50');
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.innerText = 'Success!';
+                        this.classList.remove('bg-secondary');
+                        this.classList.add('bg-on-secondary-container', 'text-white');
+                        
+                        // Particle effect or celebration could be here
+                        console.log('ZK-Proof generated and verified. Transferring assets...');
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+</body></html>
