@@ -22,9 +22,12 @@ export default function Markets() {
   const [secrets, setSecrets] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    fetch(`${ORACLE_BASE}/oracle/health`)
+    fetch(`${ORACLE_BASE}/oracle/weather/Taipei`)
       .then(r => r.json())
-      .then(() => setOracleStatus('live'))
+      .then(data => {
+        if (data.temperature !== undefined) setOracleStatus('live')
+        else setOracleStatus('offline')
+      })
       .catch(() => setOracleStatus('offline'))
 
     CITIES.forEach(city => {

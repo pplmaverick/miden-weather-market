@@ -17,9 +17,12 @@ export default function Settle() {
   const [oracleOnline, setOracleOnline] = useState(false)
 
   useEffect(() => {
-    fetch(`${ORACLE_BASE}/oracle/health`)
+    fetch(`${ORACLE_BASE}/oracle/weather/Taipei`)
       .then(r => r.json())
-      .then(() => setOracleOnline(true))
+      .then(data => {
+        if (data.temperature !== undefined) setOracleOnline(true)
+        else setOracleOnline(false)
+      })
       .catch(() => setOracleOnline(false))
 
     MARKETS.forEach(m => {
