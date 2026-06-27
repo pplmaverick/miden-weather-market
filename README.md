@@ -1,5 +1,6 @@
 # Miden Weather Prediction Market
 
+[![CI](https://github.com/pplmaverick/miden-weather-market/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pplmaverick/miden-weather-market/actions/workflows/ci.yml)
 ![Miden Testnet](https://img.shields.io/badge/Miden_Testnet-deployed-blue)
 ![Rust](https://img.shields.io/badge/Rust-nightly--2025--12--10-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
