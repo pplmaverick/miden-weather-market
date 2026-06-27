@@ -32,7 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install rustup
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+        shell: bash
 
-      - name: Cargo check
-        run: cargo check --manifest-path weather-market/Cargo.toml
+      - name: Cargo check (toolchain from rust-toolchain.toml)
+        working-directory: weather-market
+        run: cargo check
