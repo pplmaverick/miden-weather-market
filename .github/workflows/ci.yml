@@ -36,6 +36,6 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
         shell: bash
 
-      - name: Cargo check (toolchain from rust-toolchain.toml)
+      - name: Cargo check (wasm32-wasip2)
         working-directory: weather-market
-        run: cargo check
+        run: cargo check --target wasm32-wasip2
