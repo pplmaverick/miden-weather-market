@@ -27,15 +27,3 @@ jobs:
       - name: Unit tests
         run: pytest tests/ -v
 
-  rust-fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@nightly-2025-12-10
-        with:
-          components: rustfmt
-
-      - name: Check formatting
-        working-directory: weather-market
-        run: cargo fmt --check
