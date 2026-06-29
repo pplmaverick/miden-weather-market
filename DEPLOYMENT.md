@@ -7,7 +7,7 @@
 | Rust toolchain | `nightly-2025-12-10` | Required; newer nightlies may break WASM codegen |
 | Target | `wasm32-wasip2` | WASM component target |
 | cargo-miden | `0.8.1` | Miden contract build tool |
-| miden-client | `0.14.0` | Via `midenup` installer |
+| miden-client | `0.15.2` | Via `midenup` installer |
 
 ### Install Toolchain
 
@@ -22,7 +22,7 @@ cargo +nightly-2025-12-10 install cargo-miden --locked --version 0.8.1
 ### miden-client Binary Path
 
 ```bash
-MIDEN_CLIENT="$HOME/Library/Application Support/midenup/toolchains/0.14.0/bin/miden-client"
+MIDEN_CLIENT="$HOME/Library/Application Support/midenup/toolchains/0.15.2/bin/miden-client"
 ```
 
 ---
@@ -32,7 +32,8 @@ MIDEN_CLIENT="$HOME/Library/Application Support/midenup/toolchains/0.14.0/bin/mi
 ```bash
 cd /Users/pplmaverick/miden-weather-market/weather-market
 cargo miden build --release
-# Output: target/miden/release/weather_market.masp  (~292 KB)
+# Output: target/midenc/miden/release/weather-market.masp
+# (cargo-miden 0.8.1 changed output path from target/miden/ to target/midenc/miden/)
 ```
 
 ---
@@ -51,14 +52,14 @@ Initial storage sets `initialized = 0` (the `initialize()` method will set it to
 ### 2. Deploy Contract Account
 
 ```bash
-MIDEN_CLIENT="$HOME/Library/Application Support/midenup/toolchains/0.14.0/bin/miden-client"
+# miden-client 0.15.x syntax (changed from 0.14)
+MIDEN_CLIENT="$HOME/Library/Application Support/midenup/toolchains/0.15.2/bin/miden-client"
 cd /Users/pplmaverick/miden-weather-market
 
 "$MIDEN_CLIENT" new-account \
-  --account-type regular-account-updatable-code \
-  --storage-mode public \
-  -p weather-market/target/miden/release/weather_market.masp \
-  --init-storage-data-path weather-market/init_storage.toml \
+  -t public \
+  -p weather-market/target/midenc/miden/release/weather-market.masp \
+  -i weather-market/init_storage.toml \
   --deploy
 ```
 
@@ -75,18 +76,100 @@ cargo run --release
 
 ---
 
-## v5 Contract (Current)
+## Explorer
+
+**Testnet block explorer:** https://testnet.midenscan.com
+
+URL patterns (confirmed):
+- Account: `https://testnet.midenscan.com/account/<account_id>`
+- Transaction: `https://testnet.midenscan.com/tx/<tx_hash>`
+- Block: `https://testnet.midenscan.com/block/<block_number>`
+
+> Note: Miden is a ZK rollup — explorer TX pages show only TX ID, account address, and block number.
+> Function names, arguments, and storage changes are hidden by design (ZK proof).
+
+---
+
+## v0.15 Testnet Redeployment (2026-06-25)
+
+### Environment
+- miden-client: 0.15.2
+- Network: rpc.testnet.miden.io
+
+### New Wallet
+`0x2b46396710ace5b15c150f76d26812`
+
+### Contract v7
+`0x72df3f2c728125716878e6af1422af`
+Explorer: https://testnet.midenscan.com/account/0x72df3f2c728125716878e6af1422af
+
+### v0.15 e2e TX Hashes
+
+| Step | TX Hash |
+|------|---------|
+| initialize | `0x8cc89e14e738f51f698712b3188d7ae57e07dc7ce1fbe1cef4df138cc5844a67` |
+| create_market | `0xdb97d74613e1fec80839de1fddc4723a666218d4667730bc9354effac33ba398` |
+| place_bet | `0x7a511d62f4a3340dc79411f5812efa12571bede4f0e960bfef63adc5f873a3bf` |
+| settle_market | `0xad658d072b848416f85fe37480e9408db8b6c5879cf2ce06ee9faabd0bbf1233` |
+| claim_winnings | `0x303cf9b9ad170fcc8075e92876666d466158eca1de33156970de566f087077a8` |
+
+### Key Technical Note
+proc hash format: LE (`digest.to_hex()`) — not BE
+
+---
+
+## v7 Contract (Current — 2026-06-30)
+
+v7 is the production-ready build. Key changes from v6:
+- `create_market` and `claim_winnings` are **void** (no `-> Felt` return)
+- Fixes `InvalidStackDepthOnReturn { depth: 17 }` caused by component-model wrapper pushing return value after `truncate_stack` at D=16
+
+| Field | Value |
+|---|---|
+| Account ID | `0x72df3f2c728125716878e6af1422af` |
+| Explorer | https://testnet.midenscan.com/account/0x72df3f2c728125716878e6af1422af |
+| Type | Regular (updatable), Public |
+| miden-client | 0.15.2 |
+
+### v7 Proc Hashes (LE format — use directly in `call.0xHASH`)
+
+Obtained from `Package::read_from_bytes()` + `digest.to_hex()` via `tools/query-v4-procs`.
+
+| Method | Signature | Call Hash (LE format) |
+|---|---|---|
+| `initialize` | `(oracle_pk_hash: Word)` | `0x229a42d79f6d287fcf1dff1b372662e4d9d0e54984c81511db5ad51cfbf12abd` |
+| `create_market` | `(question_hash: Word, close_time: Felt, outcomes: Felt)` — void | `0x901e1be1b97baa9d132a87350ef42624fd06cf0513a8d1cd34e884b43f2b8178` |
+| `place_bet` | `(market_id: Felt, outcome: Felt, amount: Felt, commitment: Word)` | `0x7ed76d95ac446cbaf23785cf3f581afefb81bd02e74b6e9f1758446c917e000f` |
+| `settle_market` | `(market_id: Felt, winning_outcome: Felt)` | `0xdf071bb886e6fa55466026caa27d1a2e3ba0d93e982c02d0055a4025a033dc20` |
+| `claim_winnings` | `(market_id: Felt, outcome: Felt, amount: Felt, user_secret: Felt)` — void | `0xa8a32516f30b214fefcb49527415d92430b5b2daf13a7773577350d640ceea0a` |
+
+### v7 End-to-End Test (market_id=0, 2026-06-30)
+
+Full flow: initialize → create_market → place_bet (secret=42) → settle_market → claim_winnings
+
+| Step | TX Hash | Notes |
+|---|---|---|
+| initialize | `0x8cc89e14e738f51f698712b3188d7ae57e07dc7ce1fbe1cef4df138cc5844a67` | First init of v7 contract |
+| create_market | `0xdb97d74613e1fec80839de1fddc4723a666218d4667730bc9354effac33ba398` | outcomes=2, close_time=block_ts+120s |
+| place_bet | `0x7a511d62f4a3340dc79411f5812efa12571bede4f0e960bfef63adc5f873a3bf` | market_id=0, outcome=0, amount=100, secret=42 |
+| settle_market | `0xad658d072b848416f85fe37480e9408db8b6c5879cf2ce06ee9faabd0bbf1233` | winning_outcome=0, block_ts=1782758883 > close_time=1782758877 |
+| claim_winnings | `0x303cf9b9ad170fcc8075e92876666d466158eca1de33156970de566f087077a8` | market_id=0, outcome=0, amount=100, secret=42, payout=100 |
+
+---
+
+## v5 Contract (Archived)
 
 | Field | Value |
 |---|---|
 | Account ID | `0xf6fec93fd713d2107154ddda438e58` |
+| Explorer | https://testnet.midenscan.com/account/0xf6fec93fd713d2107154ddda438e58 |
 | Type | Regular (updatable), Public |
 | Deploy TX | `0x9f0128e129f665831658d96841a250d71a91e6afb41546075d1058cd59fe2d60` |
 | Deploy Block | 1172769 |
 | Initialize TX | `0x630eb38c80988a8bb4af80ef8ef9237732783d17a8d6594929e43e5220b6139e` |
 | Initialize Block | 1172920 |
 
-### v5 End-to-End Test (market_id=0)
+### v5 End-to-End Test — Run 1 (market_id=0, 2026-05-31)
 
 | Step | TX Hash | Block |
 |---|---|---|
@@ -94,6 +177,15 @@ cargo run --release
 | place_bet | `0x8976303c9c5dde3ff97843fa6816ff0a32a3baff4fd466a33dc7f98d63314776` | 1173095 |
 | settle_market | (submitted; hash not locally captured) | — |
 | claim_winnings | `0x7286d9b03ce7e0dceb55180ae293e3adf67106f053536060c1eb434474a79f7b` | 1173367 |
+
+### v5 End-to-End Test — Run 2 (market_id=1, 2026-06-08)
+
+| Step | TX Hash | Block |
+|---|---|---|
+| create_market | `0x18783aee8e60184dd7284e985b4891d70d5fde523c1a628ef5c29d499f7888ba` | — |
+| place_bet | `0x7a7c819301ad2ba760d3ae72d969c6dbcffe016288c673a12ec873a838e71246` | — |
+| settle_market | `0xcb4447099a959d1f884b5e8cb0ab29b4912b899f2f9a0780ed59306b817d7f98` | — |
+| claim_winnings | `0x9671248e46571a4b58a111ecdc0df50dac01341008793d2ccb86520d7998c1f8` | 1414057 |
 
 ---
 
