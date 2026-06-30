@@ -5,10 +5,23 @@
 ![Rust](https://img.shields.io/badge/Rust-nightly--2025--12--10-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-ZK-native prediction market infrastructure on Miden | Weather as first use case | private bet placement via ZK commitments — user secret never leaves client | fully verifiable on-chain settlement
-**Deployed on Miden Testnet**
+ZK-native prediction market infrastructure on Miden | Weather as first use case | private bet placement via ZK commitments — user secret never leaves client | fully verifiable on-chain settlement  
+**Deployed on Miden Testnet** | **Frontend: https://miden-weather-market.vercel.app**
 
-### v5 (current — full end-to-end verified)
+### v7 (current — Miden v0.15 testnet, 2026-06-25)
+
+| Field | Value |
+|---|---|
+| Contract ID | `0x72df3f2c728125716878e6af1422af` |
+| Network | rpc.testnet.miden.io (miden-client 0.15.2) |
+| Wallet | `0x2b46396710ace5b15c150f76d26812` |
+| Initialize TX | `0x8cc89e14e738f51f698712b3188d7ae57e07dc7ce1fbe1cef4df138cc5844a67` |
+| Explorer | https://testnet.midenscan.com/account/0x72df3f2c728125716878e6af1422af |
+
+> Full redeployment after Miden v0.15 testnet upgrade. The previous v5 contract (`0xf6fec93f...`) targeted a now-decommissioned testnet environment and is archived.  
+> Key v7 change: `create_market` and `claim_winnings` are **void** (no `-> Felt` return), eliminating the `InvalidStackDepthOnReturn { depth: 17 }` component-model wrapper issue.
+
+### v5 (archived — end-to-end verified, legacy testnet)
 
 | Field | Value |
 |---|---|
@@ -27,6 +40,43 @@ ZK-native prediction market infrastructure on Miden | Weather as first use case 
 
 
 ## On-chain Activity
+
+### v7 — End-to-End Test (market_id=0, 2026-06-30)
+
+Contract: `0x72df3f2c728125716878e6af1422af`
+
+> ⚠️ **market_id=0 is the e2e verification test market — settled immediately (status = SETTLED).** It is NOT one of the Week 5 production markets. Week 5 production markets start at market_id=1. See below.
+
+| TX Hash | Description |
+|---|---|
+| `0x8cc89e14e738f51f698712b3188d7ae57e07dc7ce1fbe1cef4df138cc5844a67` | `initialize()` |
+| `0xdb97d74613e1fec80839de1fddc4723a666218d4667730bc9354effac33ba398` | `create_market()` — market_id=0, outcomes=2, close_time=block_ts+120s |
+| `0x7a511d62f4a3340dc79411f5812efa12571bede4f0e960bfef63adc5f873a3bf` | `place_bet()` — market_id=0, outcome=0, amount=100, secret=42 |
+| `0xad658d072b848416f85fe37480e9408db8b6c5879cf2ce06ee9faabd0bbf1233` | `settle_market()` — winning_outcome=0, block_ts > close_time |
+| `0x303cf9b9ad170fcc8075e92876666d466158eca1de33156970de566f087077a8` | `claim_winnings()` — market_id=0, outcome=0, payout=100 ✅ |
+
+### v7 — Week 5 Frontend Integration (2026-06-30)
+
+Contract: `0x72df3f2c728125716878e6af1422af` | Frontend: https://miden-weather-market.vercel.app
+
+Three production markets created for the Week 5 frontend demo. The e2e test above consumed market_id=0 (advancing `market_count` to 1), so these markets are numbered **1/2/3 — not 0/1/2**.
+
+> ⚠️ **Known pitfall recorded here for future reference:** Assuming market IDs start at 0 after a fresh v7 deployment led to placing a bet against the already-SETTLED market_id=0 (error: "entered unreachable code" — Miden's no_std panic handler converts all `assert!()` failures to this generic message). Always read `market_count` from chain before creating markets. `submit-create-market` now does this automatically.
+
+**Markets created:**
+
+| TX Hash | market_id | City | Question | close_time (Unix) |
+|---|---|---|---|---|
+| `0x82ce6df99dbef3dd7c66d5c2ea74996576790542c4c6156a8b660b115a0fd084` | 1 | 🇹🇼 Taipei | Temp > 32.0°C? | 1782873837 |
+| `0x84b9b5696bed2440e16e94d5e17b526077a676da08605506eafaffa161041c0e` | 2 | 🇯🇵 Tokyo | Temp > 27.0°C? | 1782873915 |
+| `0x51edaba89b142bd74a740dd09739329f5f8f1ef5497fa405268d22acd687ca41` | 3 | 🇰🇷 Seoul | Temp > 27.0°C? | 1782873999 |
+
+**Bets placed:**
+
+| TX Hash | Block | market_id | City | outcome | amount | Note |
+|---|---|---|---|---|---|---|
+| `0xa674c914ee1b1ec92df72367747792d0249760a5dc5ac494261ba2c3c27bc344` | 204787 | 1 | 🇹🇼 Taipei | 0 (YES — above threshold) | 100 | CLI test (`submit-place-bet 1 0 100 159`) after correcting market_id mapping |
+| `0x1a61da5a19da31d8e5cf7dcfe20bff8d7d6f5560e9892cd4b5cb08ccc47b085f` | 205624 | 3 | 🇰🇷 Seoul | 待確認 | 待確認 | Block confirmed via GraphQL; outcome/amount not in terminal records |
 
 ### v5 — Full End-to-End Flow (2026-05-31)
 
@@ -118,7 +168,7 @@ All outcome pools contribute to a shared prize pool. Winners share the pot propo
 | Function | Description |
 |---|---|
 | `initialize(oracle_pubkey_hash)` | One-time setup — stores `Poseidon2(oracle_falcon512_pubkey)` on-chain |
-| `create_market(question_hash, close_time, outcomes)` | Create a new prediction market; returns `market_id` |
+| `create_market(question_hash, close_time, outcomes)` | Create a new prediction market; assigns `market_id = market_count` then increments counter (void — no return value in v7) |
 | `place_bet(market_id, outcome, amount, bet_commitment)` | Place a bet using a client-side ZK commitment; `user_secret` stays off-chain |
 | `settle_market(market_id, winning_outcome)` | Oracle provides Falcon512 signature via advice provider; contract verifies inside ZK proof (requires `close_time` passed) |
 | `claim_winnings(market_id, outcome, amount, user_secret)` | Reveal bet preimage and claim parimutuel payout |
@@ -178,8 +228,17 @@ cargo miden build --release
 **F32Const sentinel pattern**
 Writing `Felt(0)` directly from source code generates an unsupported `F32Const(0.0)` WASM instruction in the Miden backend. The `claimed` StorageMap uses a non-zero sentinel value instead, avoiding this compiler-level constraint entirely.
 
-**`exec` vs `call` for procedures returning a value**
-The v2 contract was compiled with an older Miden SDK where procedures with a `-> felt` return type push the return value *after* `truncate_stack`, leaving stack depth at 17. Using `call.0xPROC_HASH` from a transaction script triggers a VM-level "stack depth must be 16" violation at the procedure boundary. Using `exec.0xPROC_HASH` runs the procedure inline (no call frame), bypassing that per-boundary check. The return value sits at the top of the stack after `exec` and is removed with a trailing `drop` to restore depth to 16 before the script ends.
+**`exec` vs `call` — stack depth limitation for procedures with return values**
+
+Miden's component-model wrapper pushes a procedure's return value **after** `truncate_stack` (which resets the stack to depth 16). This leaves the stack at depth 17, triggering a VM-level `InvalidStackDepthOnReturn { depth: 17 }` error when the procedure is invoked via `call.0xPROC_HASH` (which enforces a depth-16 boundary on return).
+
+*Workaround (applies to any procedure with a `-> Felt` return type):*  
+Use `exec.0xPROC_HASH` instead of `call`. `exec` runs the procedure inline (no call frame), bypassing the per-boundary depth check. The return value sits at the top of the stack after `exec` and is removed with a trailing `drop` to restore depth to 16.
+
+*v7 resolution:*  
+`create_market` and `claim_winnings` were changed to **void** (no `-> Felt` return) in v7, eliminating the issue entirely for all mutable procedures. v7 procedures can be invoked with `call.0xPROC_HASH` directly — confirmed by live testnet TXs (e.g., `place_bet` TX `0xa674c914...` at block 204787 uses `call.0x7ed76d95...` without `exec`).
+
+> This limitation is architectural (component-model wrapper behavior), not a bug in a specific SDK version. It will recur for any future Miden component procedure that returns a value. If you add a new `-> Felt` procedure and hit `InvalidStackDepthOnReturn`, switch to `exec` + `drop`.
 
 **Restricted Rust subset**
 Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-wasip2`. Standard library features that produce unsupported WASM instructions must be avoided — this shapes data structure choices throughout the contract.
@@ -212,10 +271,22 @@ Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-w
 - Diagnosed and fixed Poseidon2/RPO256 hash mismatch in `place_bet` client tool — `make_bet_commitment` in the contract uses `miden::hash_words` (Poseidon2); client-side commitment generation now uses `miden_crypto::Poseidon2::hash_elements` to match
 - `claim_winnings` TX `0x7286d9b0...` committed at block 1173367 on v5 contract `0xf6fec93f...`
 
-**⬜ M2 — Expanded Features**
-- Client-side commitment generator (TypeScript/WASM)
-- Weather oracle integration (OpenWeather API → settle_market)
-- Frontend for market creation and bet placement
+**✅ M1.9 — v0.15 Testnet Redeployment + v7 e2e (completed 2026-06-30)**
+- Redeployed as v7 on Miden v0.15 testnet (miden-client 0.15.2, nightly-2025-12-10)
+- Fixed `InvalidStackDepthOnReturn` by making `create_market` and `claim_winnings` void (no `-> Felt` return)
+- Full 5-TX e2e passed: initialize → create_market → place_bet → settle_market → claim_winnings (market_id=0)
+- Contract: `0x72df3f2c728125716878e6af1422af`
+
+**✅ M2 — Expanded Features (completed 2026-06-30)**
+- ✅ Client-side commitment generator: Poseidon2 computed in browser via `@miden-sdk/miden-sdk` WASM — `user_secret` never leaves the device
+- ✅ Frontend for market creation and bet placement: https://miden-weather-market.vercel.app
+- ⚠️ Weather oracle integration: VPS oracle (46.62.246.244:3001) running, serving live weather data to frontend Settle panel; automated `settle_market` call pipeline not yet wired end-to-end
+
+**⚠️ M2.5 — Browser Wallet Integration: Partial (CLI Fallback)**
+- ✅ Wallet connection and address display via `WalletProvider` / `WalletMultiButton` (`@miden-sdk/miden-wallet-adapter 0.15.1`)
+- ✅ Poseidon2 bet commitment computed client-side in browser WASM — zero-knowledge; secret stays local
+- ✗ `CustomTransaction` cross-account contract call blocked by Miden v0.15 browser wallet architecture: the wallet extension's MAST forest contains only the user's own account code; `call.0x7ed76d95...` (`place_bet` proc hash of the Weather Market contract) cannot be resolved → `"procedure with root digest … could not be found"`. This is a Miden v0.15 architectural limitation, not a code bug. The Rust CLI works because `sync_state()` fetches the contract's MAST from RPC before building the transaction.
+- **Adopted solution:** frontend computes the Poseidon2 commitment locally → displays a pre-filled `submit-place-bet` CLI command → user copies and runs it from terminal. See `WALLET_INTEGRATION.md` for full investigation notes.
 
 **⬜ M3 — Mainnet**
 - Deploy to Miden Mainnet when available
