@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 
 const ORACLE_BASE = '/api/oracle'
 
+// market_id=0 was the v7 e2e test market (settled 2026-06-29).
+// Week 5 production markets start at market_id=1.
 const MARKETS = [
-  { city: 'Taipei', flag: '🇹🇼', marketId: 0, threshold: 32.0, lat: '25.0330', lon: '121.5654' },
-  { city: 'Tokyo',  flag: '🇯🇵', marketId: 1, threshold: 27.0, lat: '35.6762', lon: '139.6503' },
-  { city: 'Seoul',  flag: '🇰🇷', marketId: 2, threshold: 27.0, lat: '37.5665', lon: '126.9780' },
+  { city: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, lat: '25.0330', lon: '121.5654' },
+  { city: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, lat: '35.6762', lon: '139.6503' },
+  { city: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, lat: '37.5665', lon: '126.9780' },
 ]
 
 type WeatherData = { temperature: number; sourceCount?: number }
