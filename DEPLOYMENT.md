@@ -159,11 +159,14 @@ Full flow: initialize → create_market → place_bet (secret=42) → settle_mar
 
 Three markets created for frontend demo. Contract assigns IDs sequentially from `market_count`.
 
+**Note:** The v7 e2e test (above) created and settled market_id=0, advancing `market_count` to 1.
+These Week 5 markets therefore start at market_id=1, not 0.
+
 | market_id | City   | Question            | Threshold | TX Hash | close_time |
 |-----------|--------|---------------------|-----------|---------|------------|
-| 0         | Taipei | Temp > 32.0°C?      | 32.0°C    | `0x82ce6df99dbef3dd7c66d5c2ea74996576790542c4c6156a8b660b115a0fd084` | 1782873837 |
-| 1         | Tokyo  | Temp > 27.0°C?      | 27.0°C    | `0x84b9b5696bed2440e16e94d5e17b526077a676da08605506eafaffa161041c0e` | 1782873915 |
-| 2         | Seoul  | Temp > 27.0°C?      | 27.0°C    | `0x51edaba89b142bd74a740dd09739329f5f8f1ef5497fa405268d22acd687ca41` | 1782873999 |
+| 1         | Taipei | Temp > 32.0°C?      | 32.0°C    | `0x82ce6df99dbef3dd7c66d5c2ea74996576790542c4c6156a8b660b115a0fd084` | 1782873837 |
+| 2         | Tokyo  | Temp > 27.0°C?      | 27.0°C    | `0x84b9b5696bed2440e16e94d5e17b526077a676da08605506eafaffa161041c0e` | 1782873915 |
+| 3         | Seoul  | Temp > 27.0°C?      | 27.0°C    | `0x51edaba89b142bd74a740dd09739329f5f8f1ef5497fa405268d22acd687ca41` | 1782873999 |
 
 Frontend: https://miden-weather-market.vercel.app
 

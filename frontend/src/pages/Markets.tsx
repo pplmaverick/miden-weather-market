@@ -4,10 +4,12 @@ import { useWallet } from '@miden-sdk/miden-wallet-adapter'
 // v7 contract on Miden testnet v0.15
 const CONTRACT_ID = '0x72df3f2c728125716878e6af1422af'
 
+// market_id=0 was the v7 e2e test market (settled 2026-06-29).
+// Week 5 production markets were created after that, starting from market_count=1.
 const CITIES = [
-  { name: 'Taipei', flag: '🇹🇼', marketId: 0, threshold: 32.0, unit: '32.0' },
-  { name: 'Tokyo',  flag: '🇯🇵', marketId: 1, threshold: 27.0, unit: '27.0' },
-  { name: 'Seoul',  flag: '🇰🇷', marketId: 2, threshold: 27.0, unit: '27.0' },
+  { name: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, unit: '32.0' },
+  { name: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, unit: '27.0' },
+  { name: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, unit: '27.0' },
 ]
 
 const ORACLE_BASE = '/api/oracle'

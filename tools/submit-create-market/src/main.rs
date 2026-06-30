@@ -73,10 +73,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n=== create_market TX submitted ===");
     println!("  TX hash    = {:?}", tx_id);
-    println!("  market_id  = 0  (first market, market_count was 0)");
+    println!("  market_id  = <check market_count before this call — contract assigns sequentially>");
     println!("  close_time = {}", close_time);
     println!("  outcomes   = {}", OUTCOMES);
-    println!("\nNext: run submit-place-bet 0 0 100 42  (market_id=0, outcome=0, amount=100, secret=42)");
+    println!("\nNext: run submit-place-bet <market_id> 0 100 42  (outcome=0=YES, amount=100, secret=42)");
     println!("Then wait until block_ts > {}  (~{}s)", close_time, CLOSE_DELAY_SECS);
     println!("Then: run submit-settle-market");
 
