@@ -89,8 +89,9 @@ end`
     .build()
 
   // Create CustomTransaction and send via wallet
-  // address = contract (transaction executed on contract account, matching Rust tool behaviour)
-  const customTx = new CustomTransaction(CONTRACT_ID, walletAddress, txRequest)
+  // address = user wallet (extension manages user accounts, not the contract)
+  // recipientAddress = contract (wallet fetches contract MAST for cross-account call)
+  const customTx = new CustomTransaction(walletAddress, CONTRACT_ID, txRequest)
   const txObj = new Transaction(TransactionType.Custom, customTx)
   console.log('[Stage2] sending to extension:', JSON.stringify({ type: txObj.type, address: customTx.address, recipientAddress: customTx.recipientAddress }))
 
