@@ -41,7 +41,9 @@ type BetState = {
 // ── Stage 2: Build TransactionRequest via WASM and send through wallet ──
 async function attemptStage2(
   walletAddress: string,
-  requestTransaction: ((tx: Transaction) => Promise<{ transactionId?: string }>) | undefined,
+  // SDK returns string (txId) directly, not wrapped object — keep union for safety
+  requestTransaction: ((tx: Transaction) => Promise<string | { transactionId?: string } | undefined>) | undefined,
+  waitForTransaction: ((txId: string, timeout?: number) => Promise<unknown>) | undefined,
   marketId: number,
   outcome: number,
   amount: number,
@@ -87,12 +89,28 @@ end`
     .build()
 
   // Create CustomTransaction and send via wallet
-  const customTx = new CustomTransaction(walletAddress, CONTRACT_ID, txRequest)
-  const result = await requestTransaction(
-    new Transaction(TransactionType.Custom, customTx)
-  )
+  // address = contract (transaction executed on contract account, matching Rust tool behaviour)
+  const customTx = new CustomTransaction(CONTRACT_ID, walletAddress, txRequest)
+  const txObj = new Transaction(TransactionType.Custom, customTx)
+  console.log('[Stage2] sending to extension:', JSON.stringify({ type: txObj.type, address: customTx.address, recipientAddress: customTx.recipientAddress }))
 
-  return result.transactionId ?? 'submitted'
+  const result = await requestTransaction(txObj)
+  console.log('[Stage2] extension returned:', result, 'typeof:', typeof result)
+
+  // adapter extracts .transactionId → result IS the string UUID (or undefined)
+  const pendingId = typeof result === 'string' ? result : (result as { transactionId?: string } | undefined)?.transactionId
+  console.log('[Stage2] pendingId (UUID):', pendingId)
+
+  if (!pendingId) throw new Error('Extension returned no transaction ID')
+
+  // Wait for proving + on-chain submission (Miden wallet is two-phase)
+  if (waitForTransaction) {
+    console.log('[Stage2] calling waitForTransaction...')
+    const confirmation = await waitForTransaction(pendingId, 180000)
+    console.log('[Stage2] waitForTransaction result:', confirmation)
+  }
+
+  return pendingId
 }
 
 type City = typeof CITIES[number]
@@ -104,6 +122,7 @@ function MarketCard({
   betState,
   walletAddress,
   requestTransaction,
+  waitForTransaction,
   onBetStateChange,
 }: {
   city: City
@@ -111,7 +130,8 @@ function MarketCard({
   oracleStatus: 'live' | 'offline' | 'loading'
   betState: BetState
   walletAddress: string | null
-  requestTransaction: ((tx: Transaction) => Promise<{ transactionId?: string }>) | undefined
+  requestTransaction: ((tx: Transaction) => Promise<string | { transactionId?: string } | undefined>) | undefined
+  waitForTransaction: ((txId: string, timeout?: number) => Promise<unknown>) | undefined
   onBetStateChange: (s: BetState) => void
 }) {
   const temp = weather?.temperature
@@ -145,6 +165,7 @@ function MarketCard({
       const txHash = await attemptStage2(
         walletAddress,
         requestTransaction,
+        waitForTransaction,
         city.marketId,
         betState.outcome,
         amount,
@@ -169,6 +190,7 @@ function MarketCard({
     } catch (e: unknown) {
       // ── Fallback: compute commitment for CLI display ──
       const err = e instanceof Error ? e.message : String(e)
+      console.error('[Stage2] CAUGHT ERROR:', e)
       console.warn('Stage 2 failed, switching to CLI fallback:', err)
 
       // Try to compute commitment for the CLI command display
@@ -403,7 +425,7 @@ const statusBox = (color: string): React.CSSProperties => ({
 })
 
 export default function Markets() {
-  const { connected, address, requestTransaction } = useWallet()
+  const { connected, address, requestTransaction, waitForTransaction } = useWallet()
   const [weather, setWeather] = useState<Record<string, WeatherData | null>>({})
   const [oracleStatus, setOracleStatus] = useState<'live' | 'offline' | 'loading'>('loading')
   const [betStates, setBetStates] = useState<Record<string, BetState>>(
@@ -489,7 +511,8 @@ export default function Markets() {
             oracleStatus={oracleStatus}
             betState={betStates[city.name]}
             walletAddress={address}
-            requestTransaction={requestTransaction as ((tx: Transaction) => Promise<{ transactionId?: string }>) | undefined}
+            requestTransaction={requestTransaction as ((tx: Transaction) => Promise<string | { transactionId?: string } | undefined>) | undefined}
+          waitForTransaction={waitForTransaction as ((txId: string, timeout?: number) => Promise<unknown>) | undefined}
             onBetStateChange={s => setBetStates(prev => ({ ...prev, [city.name]: s }))}
           />
         ))}
