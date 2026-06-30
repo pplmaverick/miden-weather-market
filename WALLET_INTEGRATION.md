@@ -1,192 +1,160 @@
-# Wallet Integration Research
+# Wallet Integration — Stage 2 Investigation
 
-This document captures research and findings on integrating Miden Wallet
-into the Weather Market dApp frontend.
+## Summary
 
-## Current Status
-
-The frontend includes a "Connect Miden Wallet" button (UI-ready).
-Full wallet integration is pending SDK stability — see blockers below.
-
-On-chain interactions currently use `miden-client` CLI directly.
-Transaction history is logged in [DEPLOYMENT.md](./DEPLOYMENT.md).
+Stage 2 attempted to send bets directly from the browser wallet to the deployed Miden
+Weather Market contract. After extensive investigation, this was found to be architecturally
+blocked by a Miden v0.15 SDK limitation. The adopted solution routes on-chain submissions
+through the Miden CLI while keeping all client-side computation (Poseidon2 commitment) in
+the browser.
 
 ---
 
-## Miden Wallet Ecosystem
+## What Was Attempted
 
-### Official Chrome Extensions
+**SDK versions:**
+- `@miden-sdk/miden-sdk` 0.15.3
+- `@miden-sdk/miden-wallet-adapter` 0.15.1
 
-| Extension | Purpose |
-|-----------|---------|
-| Miden Wallet | Testnet — stable release |
-| Miden Wallet (Devnet) | Devnet — bleeding-edge features |
-
-Both wallets support:
-- Client-side proving (ZK proofs generated locally before submission)
-- dApp connections with confirmation prompts
-- Private and public account modes
-
-### SDK Packages Evaluated
-
-| Package | Version | Maintainer | Notes |
-|---------|---------|-----------|-------|
-| `@miden-sdk/miden-wallet-adapter` | v0.15.1 | dominik@miden.team (official) | Current — use this |
-| `@miden-sdk/miden-sdk` | v0.15.2 | Miden (official) | Core WASM client |
-| `@demox-labs/miden-wallet-adapter` | v0.10.0 | demox-labs | Legacy; superseded |
-| `@demox-labs/miden-sdk` | v0.12.5 | demox-labs | Legacy; superseded |
-
-> **Note:** The wallet adapter repo has been transferred from
-> `demox-labs/miden-wallet-adapter` to `0xMiden/wallet-adapter`,
-> indicating official Miden team adoption. Prefer `@miden-sdk/*` packages.
+**Approach:**
+1. Initialized `MidenClient.createMock()` to bootstrap the WASM module (chain-agnostic)
+2. Used `getWasmOrThrow()` + `wasm.Poseidon2.hashElements(felts)` to compute the bet commitment locally in browser WASM — this worked correctly
+3. Compiled a MASM transaction script using `AccountComponent.compile({ code: masm })`
+4. Built a `TransactionRequest` via `TransactionRequestBuilder`
+5. Wrapped it in `new CustomTransaction(walletAddress, CONTRACT_ID, txRequest)`
+6. Called `requestTransaction(txObj)` via `@miden-sdk/miden-wallet-adapter`
+7. Awaited `waitForTransaction(pendingId, 180000)` for on-chain confirmation
 
 ---
 
-## Planned Integration Architecture
+## Errors Encountered (in order)
 
-### Provider Setup
-
-```tsx
-// main.tsx
-import { WalletProvider } from '@miden-sdk/miden-wallet-adapter'
-import { MidenWalletAdapter } from '@miden-sdk/miden-wallet-adapter'
-
-const wallets = [new MidenWalletAdapter({ appName: 'Miden Weather Market' })]
-
-<WalletProvider wallets={wallets}>
-  <App />
-</WalletProvider>
+### Error 1 — Wrong `address` field
 ```
-
-### Wallet Connection
-
-```tsx
-// NavBar.tsx
-import { useWallet } from '@miden-sdk/miden-wallet-adapter'
-
-const { address, connected, connect, disconnect } = useWallet()
-
-<button onClick={connected ? disconnect : connect}>
-  {connected ? `${address?.slice(0, 8)}...` : 'Connect Miden Wallet'}
-</button>
+Error: account data wasn't found for account id 0x72df3f2c728125716878e6af1422af
 ```
+**Cause:** `CustomTransaction.address` was set to `CONTRACT_ID`. The extension only
+manages user-owned accounts; setting address to the contract triggers an internal lookup
+failure.
 
-### Place Bet via CustomTransaction
-
-```tsx
-// Markets.tsx
-import { useWallet, CustomTransaction } from '@miden-sdk/miden-wallet-adapter'
-
-const { address, requestTransaction } = useWallet()
-
-const handlePlaceBet = async (marketId: number, outcome: number, commitment: string) => {
-  if (!address) return
-
-  const customTx = new CustomTransaction(
-    address,
-    transactionRequest // TransactionRequest from @miden-sdk/miden-sdk
-  )
-  await requestTransaction(customTx)
-}
-```
-
-### Poseidon2 Commitment (Client-Side)
-
-The plan is to compute `bet_commitment = Poseidon2(user_secret || outcome)`
-entirely in the browser using `@miden-sdk/miden-sdk` WASM bindings.
-
-> ⚠️ The exact Poseidon2 API surface in `@miden-sdk/miden-sdk` is not yet
-> documented. Current implementation uses SHA-256 as a placeholder and will
-> be upgraded once the hashing API is confirmed from source.
-
-```tsx
-// Placeholder — to be replaced with Poseidon2 from @miden-sdk/miden-sdk
-const computeCommitment = async (secret: string, outcome: number): Promise<string> => {
-  const data = new TextEncoder().encode(`${secret}:${outcome}`)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-```
+**Fix:** Reverted to `new CustomTransaction(walletAddress, CONTRACT_ID, txRequest)` where
+`walletAddress` is the user's connected wallet address.
 
 ---
 
-## Known Issues & Blockers
-
-### 1. wallet-adapter ↔ Chrome Extension Incompatibility
-
-Tracked in: [0xMiden/wallet-adapter Issue #9](https://github.com/demox-labs/miden-wallet-adapter/issues/9)
-
-`miden-wallet-adapter` v0.2.1 failed to connect to the Chrome extension
-because `window.midenWallet` exposed `publicKey` instead of `accountId`.
-The adapter expected `accountId`, causing a runtime error on connect.
-
-> Issue #9 is now closed. It is unclear whether this was resolved or
-> closed as wontfix. Will verify against `@miden-sdk/miden-wallet-adapter`
-> v0.15.1 before implementing wallet connection.
-
-### 2. WASM Cross-Origin Isolation
-
-`@miden-sdk/miden-sdk` compiles to WebAssembly and requires:
-Cross-Origin-Opener-Policy: same-origin
-
-Cross-Origin-Embedder-Policy: require-corp
-
-These headers are already configured in `frontend/vercel.json` in
-anticipation of full SDK integration.
-
-### 3. CustomTransaction API Documentation
-
-The `CustomTransaction` class supports arbitrary contract calls beyond
-simple token sends. However, the exact `TransactionRequest` schema for
-custom contract methods is not yet fully documented.
-
-For a prediction market, the required call sequence is:
-1. `place_bet(market_id, outcome_index, bet_commitment)` — on open market
-2. `claim_winnings(market_id, user_secret, outcome_index)` — post-settlement
+### Error 2 — MAST forest limitation (ROOT CAUSE)
+```
+Error: failed to execute transaction:
+  procedure with root digest 0x7ed76d95ac446cbaf23785cf3f581afefb81bd02e74b6e9f1758446c917e000f
+  could not be found
+```
+`0x7ed76d95...` is the `place_bet` procedure hash from the deployed contract package manifest.
 
 ---
 
-## Current Workaround
+## Root Cause Analysis
 
-Until the wallet adapter stabilizes, the bet flow is:
+**Miden MAST forest:** Every Miden transaction executes within a "MAST forest" — the set of
+all Merkelized Abstract Syntax Trees that the execution engine can resolve `call.HASH`
+instructions against. For a transaction to call into a contract procedure, that contract's
+MAST must be present in the forest at execution time.
 
-1. User selects outcome + enters secret in the frontend UI
-2. Frontend computes SHA-256 commitment as placeholder
-3. User runs the corresponding `miden-client` CLI command locally:
+**Browser wallet behavior (v0.15):** The Miden Pioneer wallet extension builds the MAST
+forest from the user's own account code only. When the transaction script contains
+`call.0x7ed76d95...` (the `place_bet` procedure of the Weather Market contract), the
+extension's MAST forest does not include it → execution fails.
 
+**Rust CLI behavior:** The `submit-place-bet` tool calls `sync_state()` before building
+the transaction. `sync_state()` fetches the contract account's full MAST code from the
+Miden node RPC. This populates the local MAST forest, making cross-account procedure calls
+resolvable.
+
+**Conclusion:** This is not a code bug. It is an architectural limitation of Miden v0.15
+browser wallet: the extension has no mechanism to fetch and load external account MAST
+forests on demand.
+
+---
+
+## What Still Works
+
+| Feature | Status |
+|---|---|
+| Wallet connection (Stage 1) | ✅ Works |
+| Wallet address display | ✅ Works |
+| Poseidon2 commitment in browser WASM | ✅ Works |
+| 3 markets deployed on Miden testnet | ✅ Works |
+| CLI submission via `submit-place-bet` | ✅ Works |
+| Oracle settlement pipeline | ✅ Works |
+
+---
+
+## Adopted Solution — CLI Fallback
+
+The frontend computes the Poseidon2 commitment locally in browser WASM and displays a
+fully pre-filled CLI command for the user to run.
+
+**Commitment computation (browser):**
+```typescript
+const sdk = await import('@miden-sdk/miden-sdk')
+await sdk.MidenClient.createMock()  // bootstrap WASM, chain-agnostic
+const wasm = await sdk.getWasmOrThrow()
+const felts = new wasm.FeltArray([
+  new wasm.Felt(BigInt(marketId)),
+  new wasm.Felt(BigInt(outcome)),
+  new wasm.Felt(BigInt(amount)),
+  new wasm.Felt(BigInt(userSecret)),
+])
+const digest = wasm.Poseidon2.hashElements(felts)
+const bc = digest.toU64s()
+const commitment = `[${bc[0]}, ${bc[1]}, ${bc[2]}, ${bc[3]}]`
+```
+
+**On-chain submission (CLI):**
 ```bash
-# Place bet
-miden-client tx new-p2id \
-  --account <your-account-id> \
-  --target 0xf6fec93fd713d2107154ddda438e58 \
-  --note-type private
+cd ~/miden-weather-market
+./tools/submit-place-bet/target/release/submit-place-bet <market_id> <outcome> <amount> <user_secret>
 
-# Claim winnings
-miden-client tx consume-notes \
-  --account <your-account-id>
+# outcome: 0 = YES (above threshold), 1 = NO (at/below threshold)
 ```
 
-This preserves the ZK privacy model while the wallet SDK matures.
+This preserves the zero-knowledge privacy properties — the commitment is computed
+client-side, never transmitted to any server, and the secret stays local.
 
 ---
 
-## Roadmap
+## Why Not a VPS Relay?
 
-- [ ] Confirm Poseidon2 hashing API in `@miden-sdk/miden-sdk` v0.15.2
-- [ ] Verify Issue #9 fix status against `@miden-sdk/miden-wallet-adapter` v0.15.1
-- [ ] Implement `CustomTransaction` for `place_bet` once API is documented
-- [ ] Verify CLI account ↔ Miden Wallet Chrome extension interoperability
-- [ ] Add wallet-gated My Bets page (fetch bets by connected `address`)
+A relay server would receive the user's `user_secret` to compute the commitment
+server-side. This breaks the privacy model (secret leaves the user's device) and
+introduces a centralized trust assumption that undermines the ZK narrative.
 
 ---
 
-## References
+## Future Path
 
-- [Miden Wallet](https://miden.xyz/wallet)
-- [0xMiden/wallet-adapter on GitHub](https://github.com/0xMiden/wallet-adapter)
-- [demox-labs/miden-wallet-adapter Issue #9](https://github.com/demox-labs/miden-wallet-adapter/issues/9)
-- [@miden-sdk/miden-sdk on npm](https://www.npmjs.com/package/@miden-sdk/miden-sdk)
-- [@miden-sdk/miden-wallet-adapter on npm](https://www.npmjs.com/package/@miden-sdk/miden-wallet-adapter)
-- [Miden Faucet](https://faucet.testnet.miden.io)
+Miden SDK support for loading foreign account MAST forests is tracked as a future
+enhancement. Once available, the browser wallet flow becomes:
+
+1. Extension fetches target contract MAST via RPC
+2. Includes it in the transaction's MAST forest
+3. `call.HASH` resolves successfully
+
+When this lands in a future SDK version, `Markets.tsx` can be updated to attempt
+`requestTransaction()` before the CLI fallback path, without changing any other logic.
+
+---
+
+## Affected Files
+
+- `frontend/src/pages/Markets.tsx` — simplified: skips wallet TX attempt, always computes commitment + shows pre-filled CLI command
+- `tools/submit-place-bet/src/main.rs` — unchanged; this is the working on-chain submission path
+- `cli/miden_cli.py` — Python wrapper (note: help text bug — says `1=Yes, 2=No`; actual encoding is `0=YES, 1=NO` matching contract)
+
+---
+
+## SDK Notes
+
+- `@miden-sdk/miden-wallet-adapter` `requestTransaction()` returns the transaction UUID as a raw `string` (not `{ transactionId: string }`). Extracting `.transactionId` from a string gives `undefined`.
+- `waitForTransaction(uuid, timeout)` polls for on-chain inclusion; throws on timeout.
+- `TransactionRequest` contains only: compiled script, advice map, auth args — no nonce or account state. The extension fetches those from RPC.
+- `CustomTransaction(address, recipientAddress, txRequest)`: `address` must be a user wallet the extension manages.
