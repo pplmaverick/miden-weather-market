@@ -155,6 +155,18 @@ Full flow: initialize → create_market → place_bet (secret=42) → settle_mar
 | settle_market | `0xad658d072b848416f85fe37480e9408db8b6c5879cf2ce06ee9faabd0bbf1233` | winning_outcome=0, block_ts=1782758883 > close_time=1782758877 |
 | claim_winnings | `0x303cf9b9ad170fcc8075e92876666d466158eca1de33156970de566f087077a8` | market_id=0, outcome=0, amount=100, secret=42, payout=100 |
 
+### Week 5 Markets (2026-06-30) — 24h close window
+
+Three markets created for frontend demo. Contract assigns IDs sequentially from `market_count`.
+
+| market_id | City   | Question            | Threshold | TX Hash | close_time |
+|-----------|--------|---------------------|-----------|---------|------------|
+| 0         | Taipei | Temp > 32.0°C?      | 32.0°C    | `0x82ce6df99dbef3dd7c66d5c2ea74996576790542c4c6156a8b660b115a0fd084` | 1782873837 |
+| 1         | Tokyo  | Temp > 27.0°C?      | 27.0°C    | `0x84b9b5696bed2440e16e94d5e17b526077a676da08605506eafaffa161041c0e` | 1782873915 |
+| 2         | Seoul  | Temp > 27.0°C?      | 27.0°C    | `0x51edaba89b142bd74a740dd09739329f5f8f1ef5497fa405268d22acd687ca41` | 1782873999 |
+
+Frontend: https://miden-weather-market.vercel.app
+
 ---
 
 ## v5 Contract (Archived)
