@@ -1,0 +1,5 @@
+begin
+    # minimal no-op to test if exec works
+    push.42
+    drop
+end

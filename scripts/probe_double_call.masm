@@ -1,0 +1,12 @@
+begin
+    # Push dummy Word [1,2,3,4] as oracle_pubkey_hash arg
+    push.1.2.3.4
+
+    # Call candidate proc twice — if this is initialize(),
+    # the second call will panic with "already initialized".
+    # Replace PROC_HASH with each success proc hash to test.
+    call.PROC_HASH
+
+    push.1.2.3.4
+    call.PROC_HASH
+end

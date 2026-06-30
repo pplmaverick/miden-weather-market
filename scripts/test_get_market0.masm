@@ -1,0 +1,7 @@
+begin
+    # Proc[3] = 0x9cc554042625fb1b1df94b05310502d2f997b4f2ff39f83ef75b5a21ed7f124e
+    # Hypothesis: get-market (position 3 alphabetically)
+    # Call with market_id=0 to check if market 0 exists
+    push.0  swap.1 drop   # market_id = 0
+    call.0x9cc554042625fb1b1df94b05310502d2f997b4f2ff39f83ef75b5a21ed7f124e
+end

@@ -1,0 +1,9 @@
+begin
+    push.2            swap.6 drop
+    push.1780300000   swap.5 drop
+    push.0            swap.4 drop
+    push.0            swap.3 drop
+    push.0            swap.2 drop
+    push.0            swap.1 drop
+    call.0x967af88a92d6caedd4fc925c575633945034d4820423f84c752e23eae338f553
+end

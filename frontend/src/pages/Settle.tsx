@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react'
 const ORACLE_BASE = '/api/oracle'
 
 const MARKETS = [
-  { city: 'Taipei', flag: '🇹🇼', marketId: 4, lat: '25.0330', lon: '121.5654' },
-  { city: 'Tokyo', flag: '🇯🇵', marketId: 5, lat: '35.6762', lon: '139.6503' },
-  { city: 'Seoul', flag: '🇰🇷', marketId: 6, lat: '37.5665', lon: '126.9780' },
+  { city: 'Taipei', flag: '🇹🇼', marketId: 0, threshold: 32.0, lat: '25.0330', lon: '121.5654' },
+  { city: 'Tokyo',  flag: '🇯🇵', marketId: 1, threshold: 27.0, lat: '35.6762', lon: '139.6503' },
+  { city: 'Seoul',  flag: '🇰🇷', marketId: 2, threshold: 27.0, lat: '37.5665', lon: '126.9780' },
 ]
 
 type WeatherData = { temperature: number; sourceCount?: number }
@@ -40,7 +40,8 @@ export default function Settle() {
     })
   }, [])
 
-  const getOutcome = (temp: number) => temp >= 28 ? 'HOT (≥28°C)' : temp >= 20 ? 'MILD (20–28°C)' : 'COLD (<20°C)'
+  const getOutcome = (temp: number, threshold: number) =>
+    temp > threshold ? `YES (> ${threshold}°C)` : `NO (≤ ${threshold}°C)`
 
   const handleSettle = (city: string) => {
     setStatuses(prev => ({ ...prev, [city]: 'settled' }))
@@ -131,7 +132,7 @@ export default function Settle() {
               {MARKETS.map(m => {
                 const w = weather[m.city]
                 const status = statuses[m.city] || 'loading'
-                const outcome = w ? getOutcome(w.temperature) : '—'
+                const outcome = w ? getOutcome(w.temperature, m.threshold) : '—'
                 return (
                   <tr key={m.city} style={{
                     borderBottom: '1px solid rgba(255,255,255,0.04)',

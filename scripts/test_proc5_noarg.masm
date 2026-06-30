@@ -1,0 +1,5 @@
+begin
+    # Proc[5] = 0x0cc2d54768424568069d167a790f3dad1b891bdd970bf9e96b22f2566fb8f194
+    # Previously succeeded with no-arg; believed to be get_oracle_pubkey_hash -> Word
+    call.0x0cc2d54768424568069d167a790f3dad1b891bdd970bf9e96b22f2566fb8f194
+end

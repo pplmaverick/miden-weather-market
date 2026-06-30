@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { WalletMultiButton } from '@miden-sdk/miden-wallet-adapter'
 
 export default function NavBar() {
   return (
@@ -43,9 +44,8 @@ export default function NavBar() {
         ))}
       </div>
 
-      <button className="btn-primary" style={{ fontSize: '13px', padding: '8px 20px' }}>
-        Connect Miden Wallet
-      </button>
+      {/* Real Miden Wallet connection button — handles connect/disconnect/address display */}
+      <WalletMultiButton />
     </nav>
   )
 }

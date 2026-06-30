@@ -1,0 +1,9 @@
+use miden::protocol::active_account
+
+begin
+    # Get procedure root at index 9 (initialize)
+    push.9
+    exec.active_account::get_procedure_root
+    swapw
+    dropw
+end

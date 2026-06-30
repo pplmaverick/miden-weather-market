@@ -1,0 +1,18 @@
+use miden::protocol::native_account
+
+begin
+    # Test: set initialized slot to 1
+    # initialized slot: suffix=0x384d9df84d5dcf45 prefix=0xd6b5648a2a0d8a11
+    # VALUE = [1, 0, 0, 0] (Felt(1) in first position)
+    #
+    # Stack layout for set_item: [slot_id_suffix, slot_id_prefix, VALUE]
+    # VALUE word: push w[0] first (deep), w[3] last (top)
+    push.1.0.0.0                   # VALUE: w[0]=1, w[1]=0, w[2]=0, w[3]=0 (top=0)
+    push.0xd6b5648a2a0d8a11        # prefix
+    push.0x384d9df84d5dcf45        # suffix (top)
+    exec.native_account::set_item
+    # Returns OLD_VALUE (depth now 16 + 4 from OLD_VALUE - 10 we pushed = 10? No...)
+    # Actually: we pushed 2+4=6 felts, set_item consumed 6 and returned 4 → depth 16-6+4=14?
+    # Wait: start at 16, push 6 → 22, set_item net -2 → 20, dropw → 16
+    dropw
+end

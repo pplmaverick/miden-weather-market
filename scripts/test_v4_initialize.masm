@@ -1,0 +1,10 @@
+begin
+    # Test: can v4 find initialize proc? Use Miden order hash.
+    # If ProcedureNotFound → hash wrong
+    # If execution error (assertion, depth, etc.) → hash found, contract issue
+    push.6470498940017664536  swap.4  drop
+    push.13259097782226059522 swap.3  drop
+    push.8387568327718781019  swap.2  drop
+    push.1098406756133954412  swap.1  drop
+    call.0x1fc16cc6ab2d94c09359c1a7ae1fa54eece9a4eb6d0c2ae11f92867d5acabdfd
+end

@@ -1,0 +1,12 @@
+[package]
+name = "masp-inspector"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "masp-inspector"
+path = "src/main.rs"
+
+[dependencies]
+miden-mast-package = "0.23"
+miden-core = "0.23"

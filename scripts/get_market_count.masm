@@ -1,0 +1,4 @@
+begin
+    # Proc[4] = get_market_count -> Felt (succeeded with no-arg, net-0 stack effect)
+    call.0x4b5cd9654a161a39f1bace00478da7ee61b816ba6d676b06f70299967f471750
+end

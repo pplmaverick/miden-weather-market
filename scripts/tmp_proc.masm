@@ -1,0 +1,8 @@
+use miden::protocol::active_account
+
+begin
+    push.10
+    exec.active_account::get_procedure_root
+    swapw
+    dropw
+end

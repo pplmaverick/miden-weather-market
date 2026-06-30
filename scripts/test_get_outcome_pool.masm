@@ -1,0 +1,7 @@
+begin
+    # Proc[6] = get-outcome-pool(market_id, outcome) -> Felt
+    # Check pool for market_id=0, outcome=1 (Yes) - should be 1 if bet was placed
+    push.1  swap.2 drop   # outcome = 1
+    push.0  swap.1 drop   # market_id = 0
+    call.0x1d595967e9b056a1044e55842c6a495bb64ce0eb7ba69ae5956b9e42d3963da0
+end

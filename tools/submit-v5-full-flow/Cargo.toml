@@ -1,0 +1,14 @@
+[package]
+name = "submit-v5-full-flow"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "submit-v5-full-flow"
+path = "src/main.rs"
+
+[dependencies]
+miden-client-cli = "0.14"
+miden-client = { version = "0.14", features = ["std"] }
+miden-crypto = "0.23"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

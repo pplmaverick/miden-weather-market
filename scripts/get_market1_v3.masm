@@ -1,0 +1,6 @@
+begin
+    # get_market(market_id=1) -> Word[status, winning_outcome, close_time, outcomes_count]
+    # Proc[3] from deployed v3 contract (same hash as v2 Proc[3])
+    push.1  swap.1 drop
+    call.0x9cc554042625fb1b1df94b05310502d2f997b4f2ff39f83ef75b5a21ed7f124e
+end

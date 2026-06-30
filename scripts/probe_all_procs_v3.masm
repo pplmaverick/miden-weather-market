@@ -1,0 +1,17 @@
+use miden::protocol::active_account
+
+begin
+    # Get all 11 procedure roots (indices 0-10) of the v3 contract
+    # Each get_procedure_root pushes 4 felts (the Word root hash)
+    push.0  exec.active_account::get_procedure_root
+    push.1  exec.active_account::get_procedure_root
+    push.2  exec.active_account::get_procedure_root
+    push.3  exec.active_account::get_procedure_root
+    push.4  exec.active_account::get_procedure_root
+    push.5  exec.active_account::get_procedure_root
+    push.6  exec.active_account::get_procedure_root
+    push.7  exec.active_account::get_procedure_root
+    push.8  exec.active_account::get_procedure_root
+    push.9  exec.active_account::get_procedure_root
+    push.10 exec.active_account::get_procedure_root
+end

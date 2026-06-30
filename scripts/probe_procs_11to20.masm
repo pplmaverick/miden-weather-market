@@ -1,0 +1,12 @@
+use miden::protocol::active_account
+
+begin
+    push.11
+    exec.active_account::get_procedure_root
+    push.12
+    exec.active_account::get_procedure_root
+    push.13
+    exec.active_account::get_procedure_root
+    push.14
+    exec.active_account::get_procedure_root
+end

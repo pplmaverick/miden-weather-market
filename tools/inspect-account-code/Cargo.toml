@@ -1,0 +1,14 @@
+[package]
+name = "inspect-account-code"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "inspect-account-code"
+path = "src/main.rs"
+
+[dependencies]
+miden-client = { version = "0.14", features = ["std"] }
+miden-client-cli = "0.14"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+miden-core = { version = "0.22", features = ["std"] }

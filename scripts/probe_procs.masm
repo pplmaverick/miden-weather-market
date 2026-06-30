@@ -1,0 +1,13 @@
+use miden::protocol::active_account
+
+begin
+    # Get procedure roots at indices 0-2 (each is a Word = 4 felts)
+    push.0
+    exec.active_account::get_procedure_root
+
+    push.1
+    exec.active_account::get_procedure_root
+
+    push.2
+    exec.active_account::get_procedure_root
+end

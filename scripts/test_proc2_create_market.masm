@@ -1,0 +1,12 @@
+begin
+    # Proc[2] = 0x967af88a92d6caedd4fc925c575633945034d4820423f84c752e23eae338f553
+    # Hypothesis: create-market (alphabetical position 2 = "create-market")
+    push.2            swap.6 drop   # outcomes = 2
+    push.1780189333   swap.5 drop   # close_time
+    push.0            swap.4 drop   # qh[3]
+    push.0            swap.3 drop   # qh[2]
+    push.0            swap.2 drop   # qh[1]
+    push.0            swap.1 drop   # qh[0]
+    exec.0x967af88a92d6caedd4fc925c575633945034d4820423f84c752e23eae338f553
+    drop
+end

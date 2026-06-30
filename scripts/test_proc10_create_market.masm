@@ -1,0 +1,15 @@
+begin
+    # create_market(question_hash: Word, close_time: Felt, outcomes: Felt)
+    # WASM ABI: 6 felts total, positions 1-6 on stack
+    # question_hash = [0,0,0,0], close_time = 1780189333, outcomes = 2
+    push.2            swap.6 drop   # outcomes      → position 6
+    push.1780189333   swap.5 drop   # close_time    → position 5
+    push.0            swap.4 drop   # question_hash[3] → position 4
+    push.0            swap.3 drop   # question_hash[2] → position 3
+    push.0            swap.2 drop   # question_hash[1] → position 2
+    push.0            swap.1 drop   # question_hash[0] → position 1
+    # Proc[10] = expected create_market
+    call.0xb471a9cae1a4746ebd4acf46dd4f1fddcc8fa50a524a086b585612feeae3f5f6
+    # create_market returns market_id (Felt), move it to visible output position
+    swap.15 drop
+end

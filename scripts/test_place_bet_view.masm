@@ -1,0 +1,12 @@
+begin
+    # place_bet(market_id=0, outcome=1, amount=1, bet_commitment=[bc0,bc1,bc2,bc3])
+    # bc = Rpo256([0,1,1,42]) = [10812862698675043068, 8483794432572135953, 13865444810042079354, 11830695914661148006]
+    push.11830695914661148006  swap.7 drop
+    push.13865444810042079354  swap.6 drop
+    push.8483794432572135953   swap.5 drop
+    push.10812862698675043068  swap.4 drop
+    push.1                     swap.3 drop
+    push.1                     swap.2 drop
+    push.0                     swap.1 drop
+    call.0x5664222d2dc60614d16bc6a50b9ffa4327b6f14c15f2faffca8d884b91bf2002
+end

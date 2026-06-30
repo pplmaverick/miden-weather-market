@@ -1,0 +1,13 @@
+[package]
+name = "submit-initialize"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "submit-initialize"
+path = "src/main.rs"
+
+[dependencies]
+miden-client-cli = "0.15"
+miden-client = { version = "0.15", features = ["std"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

@@ -1,0 +1,8 @@
+begin
+    # Proc[3] = get-market(market_id) -> Word[status, winning_outcome, close_time, outcomes_count]
+    # Query market_id=1
+    # Expected before settle: [1, 1, 1780132534, 2]  (status=1=OPEN)
+    # Expected after  settle: [2, 1, 1780132534, 2]  (status=2=SETTLED, winning_outcome=1)
+    push.1  swap.1 drop   # market_id = 1
+    call.0x9cc554042625fb1b1df94b05310502d2f997b4f2ff39f83ef75b5a21ed7f124e
+end

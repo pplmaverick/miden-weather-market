@@ -1,0 +1,9 @@
+begin
+    # create_market(question_hash: Word, close_time: Felt, outcomes: Felt) -> Felt
+    # question_hash = [0,0,0,0], close_time = 0, outcomes = 2
+    push.0.0.0.0    # question_hash (w0 deep, w3 top)
+    push.0          # close_time
+    push.2          # outcomes = 2 (top)
+    call."miden:weather-market/weather-market@0.1.0"::"create-market"
+    drop            # drop return value (market_id)
+end

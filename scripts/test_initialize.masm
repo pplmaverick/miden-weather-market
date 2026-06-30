@@ -1,0 +1,7 @@
+begin
+    # Push oracle_pubkey_hash = [0, 0, 0, 1] (test value, non-zero to make it unique)
+    # In Miden stack, the LAST pushed = TOP of stack
+    push.0.0.0.1
+    # Call initialize procedure
+    call.0x1fc16cc6ab2d94c09359c1a7ae1fa54eece9a4eb6d0c2ae11f92867d5acabdfd
+end

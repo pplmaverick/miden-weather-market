@@ -1,0 +1,5 @@
+begin
+    # Proc[7] = 0x5664222d2dc60614d16bc6a50b9ffa4327b6f14c15f2faffca8d884b91bf2002
+    # Hypothesis: place-bet (position 7 in alphabetical manifest order)
+    call.0x5664222d2dc60614d16bc6a50b9ffa4327b6f14c15f2faffca8d884b91bf2002
+end

@@ -1,0 +1,11 @@
+begin
+    # Proc[1] = 0x247e6311153b9b1afa8eb7c6ccc01b5bc1dc3954fc13d75819d5116e5b9b7a54
+    push.2            swap.6 drop
+    push.1780300000   swap.5 drop
+    push.0            swap.4 drop
+    push.0            swap.3 drop
+    push.0            swap.2 drop
+    push.0            swap.1 drop
+    exec.0x247e6311153b9b1afa8eb7c6ccc01b5bc1dc3954fc13d75819d5116e5b9b7a54
+    drop
+end

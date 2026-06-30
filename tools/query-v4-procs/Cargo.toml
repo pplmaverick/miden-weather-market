@@ -1,0 +1,13 @@
+[package]
+name = "query-v4-procs"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "query-v4-procs"
+path = "src/main.rs"
+
+[dependencies]
+miden-client = { version = "0.15", features = ["std"] }
+miden-client-cli = "0.15"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

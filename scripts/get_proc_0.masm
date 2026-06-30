@@ -1,0 +1,12 @@
+use miden::protocol::active_account
+
+begin
+    push.0
+    exec.active_account::get_procedure_root
+    # Stack depth is now 20 (4 overflow). proc_root at top 4.
+    # swapw: swap top word [pr3,pr2,pr1,pr0] with next word [0,0,0,0]
+    swapw
+    # dropw: remove top [0,0,0,0], overflow fills back, depth → 16
+    dropw
+    # Final: [pr3, pr2, pr1, pr0, 0, ..., 0] depth 16
+end

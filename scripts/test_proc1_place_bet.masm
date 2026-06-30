@@ -1,0 +1,13 @@
+begin
+    # Test Proc[1] with valid place-bet args
+    # If Proc[1] = place-bet: should succeed (no assertions fire with valid market 0)
+    # If Proc[1] = claim-winnings: "market not settled" → unreachable
+    push.11830695914661148006  swap.7 drop
+    push.13865444810042079354  swap.6 drop
+    push.8483794432572135953   swap.5 drop
+    push.10812862698675043068  swap.4 drop
+    push.1                     swap.3 drop
+    push.1                     swap.2 drop
+    push.0                     swap.1 drop
+    call.0x247e6311153b9b1afa8eb7c6ccc01b5bc1dc3954fc13d75819d5116e5b9b7a54
+end
