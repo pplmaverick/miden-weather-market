@@ -243,6 +243,12 @@ Use `exec.0xPROC_HASH` instead of `call`. `exec` runs the procedure inline (no c
 **Restricted Rust subset**
 Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-wasip2`. Standard library features that produce unsupported WASM instructions must be avoided — this shapes data structure choices throughout the contract.
 
+## Known Limitations
+
+- **`settle_market()` has no oracle signature verification.** Anyone can call it to set an arbitrary outcome. Root cause: Miden SDK's `rpo_falcon512_verify` only supports tx commitment signing, not arbitrary message signing (ref: [0xMiden/protocol#1212](https://github.com/0xMiden/protocol/issues/1212)). Planned for M4 roadmap.
+- **`claim_winnings()` calculates payout but does not transfer real assets.** The full Asset/Note transfer flow (`place_bet` locking real assets, `claim_winnings` issuing P2ID notes) is not yet implemented. Current model is ledger-based simulation. Planned for M4 roadmap.
+- **The oracle script (`oracle/miden_oracle.py`) does not call `settle_market()`.** Settlement is currently manual.
+
 ## Roadmap
 
 **✅ M1 — Testnet Deployment (completed)**

@@ -211,7 +211,7 @@ def build_parser() -> argparse.ArgumentParser:
     # place-bet
     p_bet = subs.add_parser("place-bet", help="Place a bet (auto-manages user_secret)")
     p_bet.add_argument("--market-id",   type=int, required=True, help="Market ID (starting from 0)")
-    p_bet.add_argument("--outcome",     type=int, required=True, help="Predicted outcome (1=Yes, 2=No)")
+    p_bet.add_argument("--outcome",     type=int, required=True, help="Predicted outcome (0=Yes, 1=No)")
     p_bet.add_argument("--amount",      type=int, required=True, help="Bet amount (token units)")
     p_bet.add_argument("--user-secret", type=int, default=None,  help="Specify user_secret manually (default: randomly generated)")
     p_bet.add_argument("--dry-run", **dry_run_flag)
