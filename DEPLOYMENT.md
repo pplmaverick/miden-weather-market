@@ -180,6 +180,16 @@ Settled manually via `submit-settle-market` after confirming actual max temperat
 
 Frontend: https://miden-weather-market.vercel.app
 
+### Week 6 Markets (2026-07-16) — 7-day close window
+
+Three markets created for Week 6. `CLOSE_DELAY_SECS` in `tools/submit-create-market/src/main.rs` was changed from 86400 (24h) to 604800 (7d) for this batch, then the binary rebuilt with `cargo build --release`.
+
+| market_id | City     | Question            | Threshold | TX Hash | close_time |
+|-----------|----------|---------------------|-----------|---------|------------|
+| 4         | New York | Temp > 28.0°C?      | 28.0°C    | `0xd36e35c07f9b6065c7b401dfdaace51188edb02698753c68f7b42ade89368d0f` | 1784801334 |
+| 5         | London   | Temp > 22.0°C?      | 22.0°C    | `0x94cea5fbd01780057a2e378152eef01a3bc6e9ec7451a0947e9f236f2514d1ea` | 1784801385 |
+| 6         | Tokyo    | Temp > 30.0°C?      | 30.0°C    | `0x7f3b85d4565db8af0dd9b815c9928966d45f4fe9f0d69dc296c504b4c3bc3124` | 1784801394 |
+
 ---
 
 ## v5 Contract (Archived)
