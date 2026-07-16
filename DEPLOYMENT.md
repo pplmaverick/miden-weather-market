@@ -168,6 +168,16 @@ These Week 5 markets therefore start at market_id=1, not 0.
 | 2         | Tokyo  | Temp > 27.0°C?      | 27.0°C    | `0x84b9b5696bed2440e16e94d5e17b526077a676da08605506eafaffa161041c0e` | 1782873915 |
 | 3         | Seoul  | Temp > 27.0°C?      | 27.0°C    | `0x51edaba89b142bd74a740dd09739329f5f8f1ef5497fa405268d22acd687ca41` | 1782873999 |
 
+### Week 5 Markets — Settlement (2026-07-16)
+
+Settled manually via `submit-settle-market` after confirming actual max temperature on close date (2026-07-01) against Open-Meteo historical data. All three resolved YES (winning_outcome=0).
+
+| market_id | City   | winning_outcome | Confirmed Temp | Settle TX Hash |
+|-----------|--------|------------------|-----------------|----------------|
+| 1         | Taipei | 0 (YES, >32.0°C) | 34.2°C on 2026-07-01 | `0x0c002f873d219953f2dd29d0acfc6bd7c20334bd747fa4a85bae378339697a96` |
+| 2         | Tokyo  | 0 (YES, >27.0°C) | 28.5°C on 2026-07-01 | `0x236e4e0deeb138caec411620f311bdb659bd7e55e6cb91892639bead7ee274a4` |
+| 3         | Seoul  | 0 (YES, >27.0°C) | 32.7°C on 2026-07-01 | `0x62f7ed451415322feff39bcfdc3f1047fd95eaef44021ff44374055af6c3aa72` |
+
 Frontend: https://miden-weather-market.vercel.app
 
 ---
