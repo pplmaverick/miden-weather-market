@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 
-const ORACLE_BASE = '/api/oracle'
+// Direct client-side fetch, no VPS oracle dependency.
+const openMeteoUrl = (lat: string, lon: string) =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&timezone=auto`
 
 // market_id=0 was the v7 e2e test market (settled 2026-06-29).
 // Week 5 production markets start at market_id=1.
@@ -10,7 +12,7 @@ const MARKETS = [
   { city: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, lat: '37.5665', lon: '126.9780' },
 ]
 
-type WeatherData = { temperature: number; sourceCount?: number }
+type WeatherData = { temperature: number }
 type MarketStatus = 'ready' | 'settled' | 'loading'
 
 export default function Settle() {
@@ -19,25 +21,21 @@ export default function Settle() {
   const [oracleOnline, setOracleOnline] = useState(false)
 
   useEffect(() => {
-    fetch(`${ORACLE_BASE}/oracle/weather/Taipei`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.temperature !== undefined) setOracleOnline(true)
-        else setOracleOnline(false)
-      })
-      .catch(() => setOracleOnline(false))
-
     MARKETS.forEach(m => {
       setStatuses(prev => ({ ...prev, [m.city]: 'loading' }))
-      fetch(`${ORACLE_BASE}/oracle/weather/${m.city}`)
-        .then(r => r.json())
+      fetch(openMeteoUrl(m.lat, m.lon))
+        .then(r => r.ok ? r.json() : Promise.reject(new Error(`open-meteo returned ${r.status}`)))
         .then(data => {
-          setWeather(prev => ({ ...prev, [m.city]: data }))
+          const temperature = data?.current?.temperature_2m
+          if (temperature === undefined) throw new Error('no temperature_2m in response')
+          setWeather(prev => ({ ...prev, [m.city]: { temperature } }))
           setStatuses(prev => ({ ...prev, [m.city]: 'ready' }))
+          if (m.city === 'Taipei') setOracleOnline(true)
         })
         .catch(() => {
           setWeather(prev => ({ ...prev, [m.city]: null }))
           setStatuses(prev => ({ ...prev, [m.city]: 'ready' }))
+          if (m.city === 'Taipei') setOracleOnline(false)
         })
     })
   }, [])
@@ -91,7 +89,7 @@ export default function Settle() {
             SYSTEM WARNING
           </div>
           <div style={{ fontSize: '14px', color: '#e4e1e9', fontWeight: 600 }}>
-            Admin function — settlement runs automatically via VPS oracle
+            Admin function — settlement is manual; weather data fetched directly from Open-Meteo
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -213,7 +211,7 @@ export default function Settle() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '48px' }}>
         {[
           { label: 'PENDING PROOFS', value: `${MARKETS.filter(m => statuses[m.city] !== 'settled').length} Active`, color: 'rgba(155,89,245,1)' },
-          { label: 'ORACLE SOURCES', value: '3 APIs', color: '#41eec2', sub: 'OpenWeather · WeatherAPI · Open-Meteo' },
+          { label: 'SOURCE', value: 'Open-Meteo', color: '#41eec2', sub: 'api.open-meteo.com · direct client fetch' },
           { label: 'ZK INTEGRITY', value: '99.98%', color: '#e4e1e9', sub: 'MIDEN STARK VERIFIED' },
         ].map(({ label, value, color, sub }) => (
           <div key={label} className="card" style={{ padding: '20px 24px' }}>
@@ -237,8 +235,7 @@ export default function Settle() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#41eec2', display: 'inline-block' }} />
           <span style={{ fontSize: '12px', color: '#64748b' }}>
-            Oracle: <span style={{ color: '#e4e1e9' }}>46.62.246.244:3001</span>
-            {' '}· Sources: <span style={{ color: '#e4e1e9' }}>OpenWeather + WeatherAPI + Open-Meteo</span>
+            Source: <span style={{ color: '#e4e1e9' }}>Open-Meteo (api.open-meteo.com)</span>
           </span>
         </div>
       </div>

@@ -7,17 +7,17 @@ const CONTRACT_ID = '0x72df3f2c728125716878e6af1422af'
 // market_id=0 was the v7 e2e test market (settled 2026-06-29).
 // Week 5 production markets were created after that, starting from market_count=1.
 const CITIES = [
-  { name: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, unit: '32.0' },
-  { name: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, unit: '27.0' },
-  { name: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, unit: '27.0' },
+  { name: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, unit: '32.0', lat: 25.0330, lon: 121.5654 },
+  { name: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, unit: '27.0', lat: 35.6762, lon: 139.6503 },
+  { name: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, unit: '27.0', lat: 37.5665, lon: 126.9780 },
 ]
 
-const ORACLE_BASE = '/api/oracle'
+// Direct client-side fetch, no VPS oracle dependency.
+const openMeteoUrl = (lat: number, lon: number) =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&timezone=auto`
 
 type WeatherData = {
   temperature: number
-  sources?: { openweather?: number; weatherapi?: number; openmeteo?: number }
-  sourceCount?: number
 }
 
 type BetOutcome = 0 | 1  // 0 = YES (above threshold), 1 = NO (at/below threshold)
@@ -176,13 +176,9 @@ function MarketCard({
         <div style={{ fontSize: '48px', fontWeight: 700, color: 'rgba(155,89,245,1)', lineHeight: 1, letterSpacing: '-0.02em' }}>
           {temp !== undefined ? `${temp.toFixed(1)}°C` : '--.-°C'}
         </div>
-        {weather?.sources && (
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px', lineHeight: 1.6 }}>
-            OW: {weather.sources.openweather?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
-            WA: {weather.sources.weatherapi?.toFixed(1) ?? '--'}°&nbsp;·&nbsp;
-            OM: {weather.sources.openmeteo?.toFixed(1) ?? '--'}°
-          </div>
-        )}
+        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px', lineHeight: 1.6 }}>
+          SOURCE: Open-Meteo
+        </div>
         {temp !== undefined && (
           <div style={{ fontSize: '12px', marginTop: '6px' }}>
             <span style={{ color: '#64748b' }}>Current reading: </span>
@@ -379,16 +375,18 @@ export default function Markets() {
   )
 
   useEffect(() => {
-    fetch(`${ORACLE_BASE}/oracle/weather/Taipei`)
-      .then(r => r.json())
-      .then(data => setOracleStatus(data.temperature !== undefined ? 'live' : 'offline'))
-      .catch(() => setOracleStatus('offline'))
-
     CITIES.forEach(city => {
-      fetch(`${ORACLE_BASE}/oracle/weather/${city.name}`)
-        .then(r => r.json())
-        .then(data => setWeather(prev => ({ ...prev, [city.name]: data })))
-        .catch(() => setWeather(prev => ({ ...prev, [city.name]: null })))
+      fetch(openMeteoUrl(city.lat, city.lon))
+        .then(r => r.ok ? r.json() : Promise.reject(new Error(`open-meteo returned ${r.status}`)))
+        .then(data => {
+          const temperature = data?.current?.temperature_2m
+          setWeather(prev => ({ ...prev, [city.name]: temperature !== undefined ? { temperature } : null }))
+          if (city.name === 'Taipei') setOracleStatus(temperature !== undefined ? 'live' : 'offline')
+        })
+        .catch(() => {
+          setWeather(prev => ({ ...prev, [city.name]: null }))
+          if (city.name === 'Taipei') setOracleStatus('offline')
+        })
     })
   }, [])
 
