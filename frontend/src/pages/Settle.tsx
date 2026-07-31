@@ -1,16 +1,30 @@
 import { useState, useEffect } from 'react'
+import marketsConfig from '../markets-config.json'
 
 // Direct client-side fetch, no VPS oracle dependency.
 const openMeteoUrl = (lat: string, lon: string) =>
   `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&timezone=auto`
 
-// market_id=0 was the v7 e2e test market (settled 2026-06-29).
-// Week 5 production markets start at market_id=1.
-const MARKETS = [
-  { city: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, lat: '25.0330', lon: '121.5654' },
-  { city: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, lat: '35.6762', lon: '139.6503' },
-  { city: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, lat: '37.5665', lon: '126.9780' },
-]
+// Coordinates + flag emoji per city (not tracked on-chain, so kept as local lookup).
+const CITY_META: Record<string, { flag: string; lat: string; lon: string }> = {
+  Taipei:      { flag: '🇹🇼', lat: '25.0330', lon: '121.5654' },
+  Tokyo:       { flag: '🇯🇵', lat: '35.6762', lon: '139.6503' },
+  Seoul:       { flag: '🇰🇷', lat: '37.5665', lon: '126.9780' },
+  'New York':  { flag: '🇺🇸', lat: '40.7128', lon: '-74.0060' },
+  London:      { flag: '🇬🇧', lat: '51.5074', lon: '-0.1278' },
+}
+
+// Only OPEN markets still need settling.
+const MARKETS = marketsConfig.markets
+  .filter(m => m.status === 'OPEN')
+  .map(m => ({
+    city: m.city,
+    marketId: m.id,
+    threshold: m.threshold,
+    flag: CITY_META[m.city]?.flag ?? '🌍',
+    lat: CITY_META[m.city]?.lat ?? '0',
+    lon: CITY_META[m.city]?.lon ?? '0',
+  }))
 
 type WeatherData = { temperature: number }
 type MarketStatus = 'ready' | 'settled' | 'loading'

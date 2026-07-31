@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import marketsConfig from '../markets-config.json'
 
 type Bet = {
   marketId: number
@@ -10,6 +11,11 @@ type Bet = {
   status: 'pending' | 'claimable' | 'claimed' | 'lost'
   timestamp: number
 }
+
+// Bets are tracked client-side and stay 'pending' until manually claimed;
+// this cross-checks the underlying market so already-settled bets read RESOLVED, not PENDING.
+const isMarketSettled = (marketId: number) =>
+  marketsConfig.markets.find(m => m.id === marketId)?.status === 'SETTLED'
 
 export default function MyBets() {
   const [bets, setBets] = useState<Bet[]>([])
@@ -28,8 +34,11 @@ export default function MyBets() {
     localStorage.setItem('midenBets', JSON.stringify(updated))
   }
 
-  const statusBadge = (status: Bet['status']) => {
-    switch (status) {
+  const statusBadge = (bet: Bet) => {
+    if (bet.status !== 'claimed' && bet.status !== 'lost' && isMarketSettled(bet.marketId)) {
+      return <span className="badge badge-settled">✓ RESOLVED</span>
+    }
+    switch (bet.status) {
       case 'claimable': return <span className="badge badge-claimable"><span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#41eec2', display: 'inline-block' }} />CLAIMABLE</span>
       case 'pending': return <span className="badge badge-pending"><span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(155,89,245,1)', display: 'inline-block' }} />PENDING</span>
       case 'claimed': return <span className="badge badge-claimed">✓ CLAIMED</span>
@@ -138,14 +147,14 @@ export default function MyBets() {
                       {bet.secret}
                     </td>
                     <td style={{ padding: '20px 24px' }}>
-                      {statusBadge(bet.status)}
+                      {statusBadge(bet)}
                     </td>
                     <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                       {bet.status === 'claimable' ? (
                         <button className="btn-teal" onClick={() => handleClaim(i)}>
                           Claim Winnings
                         </button>
-                      ) : bet.status === 'pending' ? (
+                      ) : bet.status === 'pending' && !isMarketSettled(bet.marketId) ? (
                         <button className="btn-ghost">Wait for Proof</button>
                       ) : bet.status === 'claimed' ? (
                         <span style={{ fontSize: '11px', color: '#64748b' }}>Tx: 0x...ZK</span>

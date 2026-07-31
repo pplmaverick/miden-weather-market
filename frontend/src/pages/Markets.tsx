@@ -1,16 +1,31 @@
 import { useState, useEffect, type CSSProperties } from 'react'
 import { useWallet } from '@miden-sdk/miden-wallet-adapter'
+import marketsConfig from '../markets-config.json'
 
 // v7 contract on Miden testnet v0.15
 const CONTRACT_ID = '0x72df3f2c728125716878e6af1422af'
 
-// market_id=0 was the v7 e2e test market (settled 2026-06-29).
-// Week 5 production markets were created after that, starting from market_count=1.
-const CITIES = [
-  { name: 'Taipei', flag: '🇹🇼', marketId: 1, threshold: 32.0, unit: '32.0', lat: 25.0330, lon: 121.5654 },
-  { name: 'Tokyo',  flag: '🇯🇵', marketId: 2, threshold: 27.0, unit: '27.0', lat: 35.6762, lon: 139.6503 },
-  { name: 'Seoul',  flag: '🇰🇷', marketId: 3, threshold: 27.0, unit: '27.0', lat: 37.5665, lon: 126.9780 },
-]
+// Coordinates + flag emoji per city (not tracked on-chain, so kept as local lookup).
+const CITY_META: Record<string, { flag: string; lat: number; lon: number }> = {
+  Taipei:      { flag: '🇹🇼', lat: 25.0330, lon: 121.5654 },
+  Tokyo:       { flag: '🇯🇵', lat: 35.6762, lon: 139.6503 },
+  Seoul:       { flag: '🇰🇷', lat: 37.5665, lon: 126.9780 },
+  'New York':  { flag: '🇺🇸', lat: 40.7128, lon: -74.0060 },
+  London:      { flag: '🇬🇧', lat: 51.5074, lon: -0.1278 },
+}
+
+// Only OPEN markets accept new bets. City/threshold come from markets-config.json.
+const CITIES = marketsConfig.markets
+  .filter(m => m.status === 'OPEN')
+  .map(m => ({
+    name: m.city,
+    marketId: m.id,
+    threshold: m.threshold,
+    unit: m.threshold.toFixed(1),
+    flag: CITY_META[m.city]?.flag ?? '🌍',
+    lat: CITY_META[m.city]?.lat ?? 0,
+    lon: CITY_META[m.city]?.lon ?? 0,
+  }))
 
 // Direct client-side fetch, no VPS oracle dependency.
 const openMeteoUrl = (lat: number, lon: number) =>
