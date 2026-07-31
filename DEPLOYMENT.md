@@ -190,6 +190,31 @@ Three markets created for Week 6. `CLOSE_DELAY_SECS` in `tools/submit-create-mar
 | 5         | London   | Temp > 22.0°C?      | 22.0°C    | `0x94cea5fbd01780057a2e378152eef01a3bc6e9ec7451a0947e9f236f2514d1ea` | 1784801385 |
 | 6         | Tokyo    | Temp > 30.0°C?      | 30.0°C    | `0x7f3b85d4565db8af0dd9b815c9928966d45f4fe9f0d69dc296c504b4c3bc3124` | 1784801394 |
 
+### Week 6 Markets — Settlement (2026-07-31)
+
+Settled manually via `submit-settle-market` after confirming actual temperature on close date (2026-07-23) against Open-Meteo historical data.
+
+| market_id | City     | winning_outcome | Confirmed Temp | Settle TX Hash |
+|-----------|----------|------------------|-----------------|----------------|
+| 4         | New York | 1 (NO, <28.0°C)  | 19.1°C on 2026-07-23 | `0x6f5fa4955dfdbd97e0aa1cf565cbf008f3af076026b1de8e58d1c8af1c4442b5` |
+| 5         | London   | 1 (NO, <22.0°C)  | 20.4°C on 2026-07-23 | `0x5bd595c1e340076142d416ccd1bc11b3ecc89e7785303ecd46c64a7a54cfbb8e` |
+| 6         | Tokyo    | 0 (YES, >30.0°C) | 33.3°C on 2026-07-23 | `0x502446b627797677459a607ba0f60d89acdac7dedacec20ad991a3bca424f33c` |
+
+## Week 7 Markets（2026-07-31，7天 close window）
+
+| market_id | 城市 | 問題 | 門檻 | close_time |
+|---|---|---|---|---|
+| 7 | Taipei | Temp > 32.0°C? | 32.0°C | 1786076808 |
+| 8 | Seoul | Temp > 27.0°C? | 27.0°C | 1786076820 |
+| 9 | London | Temp > 22.0°C? | 22.0°C | 1786076829 |
+
+TX hashes:
+- Market 7: `0xc2bf19da6a4d78cd0a9d037537754116bea838f362e8b90838fb655f0d2fdb3c`
+- Market 8: `0x13c53352f2e069437a67ce33e8ba2f4b3bcec33c06756b07ca974dc7e9a810af`
+- Market 9: `0x1530d1ed0320e318c72b220818c994d7f71de1db71e38611285c9782c0d8a93b`
+
+Frontend: https://miden-weather-market.vercel.app
+
 ---
 
 ## v5 Contract (Archived)
