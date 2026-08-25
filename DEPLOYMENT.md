@@ -225,6 +225,20 @@ Settled via `submit-settle-market` after confirming actual temperature on close 
 | 8         | Seoul  | 0 (YES, >27.0°C) | 38.4°C on 2026-08-07 | `0x31a55da53e2aeb1cd92eb63d63dafeb75c191d9d91a601afaadedea651638a62` |
 | 9         | London | 0 (YES, >22.0°C) | 25.9°C on 2026-08-07 | `0x3cce4f27ce4683eaa933a9c45bb83d1188f44592d6fd9437bdcb5b18d6ff417b` |
 
+## Week 8 Markets (2026-08-25，14-day close window)
+
+`CLOSE_DELAY_SECS` in `tools/submit-create-market/src/main.rs` changed from 604800 (7d) to 1209600 (14d) for this batch. Thresholds picked from the 14-day Open-Meteo forecast median for each city (close date ≈ 2026-09-08) to keep the markets genuinely uncertain.
+
+| market_id | City     | Question         | Threshold | TX Hash | close_time |
+|-----------|----------|------------------|-----------|---------|------------|
+| 10        | New York | Temp > 26.0°C?   | 26.0°C    | `0x02f319fae56aba7bde9c7c53844234021bab14f5b03af652cf728d8b9a17b3fd` | 1788829252 |
+| 11        | Tokyo    | Temp > 29.0°C?   | 29.0°C    | `0xbe6e9ee79131c2d84bd53ecaee62474db9a968fdf55d73a7efc42221cdadcdb8` | 1788829264 |
+| 12        | Seoul    | Temp > 28.0°C?   | 28.0°C    | `0x0da37210eb58e8c0ec06e78a89876dbc217f3d86d362236a32ac3ca7e404d85a` | 1788829273 |
+
+Close date: 2026-09-08 (~01:01 UTC). Settle after that with `submit-settle-market <id> <outcome>` per city's actual max temp that day.
+
+Frontend: https://miden-weather-market.vercel.app
+
 ---
 
 ## v5 Contract (Archived)
