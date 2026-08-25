@@ -215,6 +215,16 @@ TX hashes:
 
 Frontend: https://miden-weather-market.vercel.app
 
+### Week 7 Markets — Settlement (2026-08-25)
+
+Settled via `submit-settle-market` after confirming actual temperature on close date (2026-08-07) against Open-Meteo historical data (Taipei cross-checked hourly — peaked at 32.4°C at 13:00 local, above the 32.0°C threshold).
+
+| market_id | City   | winning_outcome | Confirmed Temp | Settle TX Hash |
+|-----------|--------|------------------|-----------------|----------------|
+| 7         | Taipei | 0 (YES, >32.0°C) | 32.4°C on 2026-08-07 | `0x5ab44693f7923a0a2d07e245e0d5b7be1feb3ba1915e5425c40fe735ee8334de` |
+| 8         | Seoul  | 0 (YES, >27.0°C) | 38.4°C on 2026-08-07 | `0x31a55da53e2aeb1cd92eb63d63dafeb75c191d9d91a601afaadedea651638a62` |
+| 9         | London | 0 (YES, >22.0°C) | 25.9°C on 2026-08-07 | `0x3cce4f27ce4683eaa933a9c45bb83d1188f44592d6fd9437bdcb5b18d6ff417b` |
+
 ---
 
 ## v5 Contract (Archived)

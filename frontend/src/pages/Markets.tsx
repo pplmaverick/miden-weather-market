@@ -27,6 +27,26 @@ const CITIES = marketsConfig.markets
     lon: CITY_META[m.city]?.lon ?? 0,
   }))
 
+// Settled markets, newest first. Winning outcome comes from markets-config.json.
+type PastMarket = {
+  marketId: number
+  name: string
+  unit: string
+  flag: string
+  winningOutcome: 0 | 1
+}
+
+const PAST_MARKETS: PastMarket[] = marketsConfig.markets
+  .filter(m => m.status === 'SETTLED')
+  .sort((a, b) => b.id - a.id)
+  .map(m => ({
+    marketId: m.id,
+    name: m.city,
+    unit: m.threshold.toFixed(1),
+    flag: CITY_META[m.city]?.flag ?? '🌍',
+    winningOutcome: m.winning_outcome as 0 | 1,
+  }))
+
 // Direct client-side fetch, no VPS oracle dependency.
 const openMeteoUrl = (lat: number, lon: number) =>
   `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&timezone=auto`
@@ -369,6 +389,41 @@ function MarketCard({
   )
 }
 
+function PastMarketCard({ market }: { market: PastMarket }) {
+  const isYes = market.winningOutcome === 0
+  return (
+    <div style={{
+      padding: '20px 24px',
+      borderRadius: '12px',
+      border: '1px solid rgba(148,163,184,0.1)',
+      background: 'rgba(10,10,15,0.55)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: '16px',
+    }}>
+      <div>
+        <div style={{ fontSize: '16px', fontWeight: 700, color: '#94a3b8' }}>
+          {market.flag} {market.name}
+        </div>
+        <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px', letterSpacing: '0.08em' }}>
+          MARKET #{market.marketId} · &gt; {market.unit}°C?
+        </div>
+      </div>
+      <span style={{
+        fontSize: '13px', fontWeight: 700, padding: '6px 14px', borderRadius: '999px',
+        border: `1px solid ${isYes ? 'rgba(65,238,194,0.35)' : 'rgba(239,68,68,0.35)'}`,
+        background: isYes ? 'rgba(65,238,194,0.1)' : 'rgba(239,68,68,0.1)',
+        color: isYes ? '#41eec2' : '#ef4444',
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+      }}>
+        {isYes ? 'YES ✓' : 'NO ✗'}
+      </span>
+    </div>
+  )
+}
+
 const inputStyle: CSSProperties = {
   width: '100%', padding: '9px 12px',
   background: 'rgba(155,89,245,0.05)',
@@ -472,6 +527,32 @@ export default function Markets() {
             walletAddress={address}
             onBetStateChange={s => setBetStates(prev => ({ ...prev, [city.name]: s }))}
           />
+        ))}
+      </div>
+
+      {/* Past Markets header */}
+      <div style={{ marginTop: '56px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+          <div style={{ width: '4px', height: '32px', background: 'rgba(155,89,245,1)', borderRadius: '2px' }} />
+          <h1 style={{ fontSize: '32px', fontWeight: 700, color: 'rgba(155,89,245,1)', letterSpacing: '-0.02em' }}>
+            Past Markets
+          </h1>
+        </div>
+        <p style={{ color: '#64748b', fontSize: '13px', marginLeft: '16px' }}>
+          Settled Markets · Final Outcomes
+        </p>
+      </div>
+
+      {/* Past markets grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '16px',
+        maxWidth: '1050px',
+        margin: '0 auto',
+      }}>
+        {PAST_MARKETS.map(market => (
+          <PastMarketCard key={market.marketId} market={market} />
         ))}
       </div>
 

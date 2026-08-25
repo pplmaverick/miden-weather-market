@@ -7,8 +7,8 @@
     {"id": 4, "city": "New York", "threshold": 28.0, "status": "SETTLED", "winning_outcome": 1},
     {"id": 5, "city": "London", "threshold": 22.0, "status": "SETTLED", "winning_outcome": 1},
     {"id": 6, "city": "Tokyo", "threshold": 30.0, "status": "SETTLED", "winning_outcome": 0},
-    {"id": 7, "city": "Taipei", "threshold": 32.0, "status": "OPEN", "winning_outcome": null},
-    {"id": 8, "city": "Seoul", "threshold": 27.0, "status": "OPEN", "winning_outcome": null},
-    {"id": 9, "city": "London", "threshold": 22.0, "status": "OPEN", "winning_outcome": null}
+    {"id": 7, "city": "Taipei", "threshold": 32.0, "status": "SETTLED", "winning_outcome": 0},
+    {"id": 8, "city": "Seoul", "threshold": 27.0, "status": "SETTLED", "winning_outcome": 0},
+    {"id": 9, "city": "London", "threshold": 22.0, "status": "SETTLED", "winning_outcome": 0}
   ]
 }
