@@ -245,6 +245,7 @@ Miden contracts compile to WASM via a nightly Rust toolchain targeting `wasm32-w
 
 ## Known Limitations
 
+- **Frontend market metadata is static, not read live from chain.** Browser calls to view functions like `get_market()`/`get_outcome_pool()` hit the same SDK stack-depth bug noted below (`InvalidStackDepthOnReturn`), so city, threshold, status, and `winning_outcome` per market are hand-maintained in `frontend/src/markets-config.json` instead. Opening or settling a market still happens on-chain via the CLI tools in `tools/`; this file must be updated to match afterward or the UI will drift from real contract state.
 - **`settle_market()` has no oracle signature verification.** Anyone can call it to set an arbitrary outcome. Root cause: Miden SDK's `rpo_falcon512_verify` only supports tx commitment signing, not arbitrary message signing (ref: [0xMiden/protocol#1212](https://github.com/0xMiden/protocol/issues/1212)). Planned for M4 roadmap.
 - **`claim_winnings()` calculates payout but does not transfer real assets.** The full Asset/Note transfer flow (`place_bet` locking real assets, `claim_winnings` issuing P2ID notes) is not yet implemented. Current model is ledger-based simulation. Planned for M4 roadmap.
 - **The oracle script (`oracle/miden_oracle.py`) does not call `settle_market()`.** Settlement is currently manual.
