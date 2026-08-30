@@ -12,3 +12,8 @@ target/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# env secrets
+.env
+.env.*
+!.env.example
